@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MidWest Tees — Affiliate Portal</title>
+<style>
+  :root{--bg:#0f1115;--panel:#171a21;--panel2:#1e222b;--line:#2a2f3a;--text:#f2f4f8;--muted:#9aa4b2;
+    --brand:#5b8cff;--good:#39d98a;--warn:#ffb020;--bubble-you:#26466e;--radius:16px}
+  *{box-sizing:border-box}html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;display:flex;justify-content:center}
+  .app{width:100%;max-width:520px;min-height:100vh;display:flex;flex-direction:column}
+  header{padding:18px 20px 14px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#1a1e27,#12151c);position:sticky;top:0;z-index:5}
+  .brandrow{display:flex;align-items:center;gap:10px}
+  .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--brand),#8a5bff);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+  h1{font-size:16px;margin:0}.sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .tag{margin-left:auto;font-size:10px;font-weight:700;padding:4px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.5px}
+  .tag.demo{background:#3a2a10;color:var(--warn);border:1px solid #4d3a17}
+  .tag.live{background:#0f3324;color:var(--good);border:1px solid #17513a}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 20px 6px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+  .card .big{font-size:26px;font-weight:800;margin-top:2px}
+  .card .lbl{color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .card.owed .big{color:var(--good)}
+  .linkbar{margin:10px 20px 4px;background:var(--panel2);border:1px dashed var(--line);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+  .linkbar .lk{flex:1;font-size:13px;color:#bcd2ff;word-break:break-all}
+  .btn{background:var(--brand);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-weight:700;font-size:13px;cursor:pointer}.btn:active{transform:translateY(1px)}
+  .chat{flex:1;overflow-y:auto;padding:14px 16px 8px;display:flex;flex-direction:column;gap:12px}
+  .msg{max-width:88%;padding:12px 14px;border-radius:16px;font-size:15px;line-height:1.5}
+  .bot{background:var(--panel);border:1px solid var(--line);border-top-left-radius:5px;align-self:flex-start}
+  .you{background:var(--bubble-you);border-top-right-radius:5px;align-self:flex-end}
+  .bot .lead{font-size:19px;font-weight:800;margin-bottom:4px;display:block}
+  .dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted);margin:0 2px;animation:b 1s infinite}
+  .dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+  @keyframes b{0%,60%,100%{opacity:.3}30%{opacity:1}}
+  .quick{display:flex;gap:8px;overflow-x:auto;padding:8px 16px;border-top:1px solid var(--line);background:#12151c}
+  .chip{white-space:nowrap;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:9px 13px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer}
+  .composer{display:flex;gap:8px;padding:12px 16px 18px;border-top:1px solid var(--line);background:#12151c;position:sticky;bottom:0}
+  .composer input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;color:var(--text);font-size:15px;outline:none}
+  .composer input:focus{border-color:var(--brand)}
+  .footnote{color:var(--muted);font-size:11px;text-align:center;padding:0 20px 14px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><div class="brandrow">
+    <div class="logo">MW</div>
+    <div><h1>MidWest Tees — Affiliate Portal</h1><div class="sub">Hey <span id="affName">there</span> 👋 welcome back</div></div>
+    <span class="tag demo" id="modeTag">Demo</span>
+  </div></header>
+  <div class="stats">
+    <div class="card owed"><div class="lbl">Owed to you</div><div class="big" id="statOwed">$0.00</div></div>
+    <div class="card"><div class="lbl">Sales you drove</div><div class="big" id="statSales">$0.00</div></div>
+  </div>
+  <div class="linkbar"><div class="lk" id="myLink">…</div><button class="btn" onclick="copyLink()">Copy</button></div>
+  <div class="chat" id="chat">
+    <div class="msg bot"><span class="lead">Ask me anything about your affiliate account! 😊</span>Type a question or tap a button. I keep answers nice and simple.</div>
+  </div>
+  <div class="quick" id="quick"></div>
+  <div class="composer">
+    <input id="input" placeholder="Type your question…" autocomplete="off" onkeydown="if(event.key==='Enter')ask(this.value)">
+    <button class="btn" onclick="ask(document.getElementById('input').value)">Ask</button>
+  </div>
+  <div class="footnote" id="foot">Loading…</div>
+</div>
+<script>
+const TOKEN = new URLSearchParams(location.search).get('token');
+let LIVE=false;
+let ME={name:"Sarah",tag:"sarah",venmo:"sarah-midwest",rate:0.10,sales:482,orders:6,earned:48.2,paid:0,owed:48.2,link:"https://shopmidwesttees.com/?utm_source=sarah"};
+const history=[];
+const money=n=>"$"+Number(n||0).toFixed(2);
+const chat=document.getElementById('chat');
+function render(){document.getElementById('affName').textContent=ME.name;
+  document.getElementById('statOwed').textContent=money(ME.owed);
+  document.getElementById('statSales').textContent=money(ME.sales);
+  document.getElementById('myLink').textContent=ME.link;}
+function bubble(cls,html){const d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d;}
+function copyLink(){navigator.clipboard&&navigator.clipboard.writeText(ME.link);bubble('bot','<span class="lead">Copied! ✅</span>Your link is ready to paste anywhere.');}
+async function askLive(q){
+  const t=bubble('bot','<span class="dots"><span></span><span></span><span></span></span>');
+  try{const r=await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({token:TOKEN,question:q,history})});
+    const d=await r.json();const a=d.answer||d.error||"Hmm, try again.";
+    t.innerHTML=a.replace(/\n/g,'<br>');
+    history.push({role:'user',content:q},{role:'assistant',content:a});
+  }catch(e){t.innerHTML="Couldn't reach the helper — try again in a sec.";}
+}
+function askDemo(q){const s=q.toLowerCase(),has=(...w)=>w.some(x=>s.includes(x));let out;
+  if(has("how much","earn","made","money","owe","commission"))out=money(ME.owed)+" owed to you right now 🎉 That's 10% of the "+money(ME.sales)+" in sales you've driven.";
+  else if(has("link","share","url","promote"))out="Here's your link 👇<br><b>"+ME.link+"</b><br>Share it anywhere — anyone who buys after clicking counts as yours.";
+  else if(has("when","get paid","payout","cash","venmo"))out="We send it to your Venmo — you just keep sharing your link! 💸";
+  else if(has("how many","orders","sales","clicks"))out=ME.orders+" orders so far from your link. Nice work! 👏";
+  else if(has("how does","what is","explain","work","start"))out="Super simple ✨ Share your link → someone buys → you get 10% → we Venmo you. That's it!";
+  else if(has("more","tips","better","grow"))out="Post your link in group chats, your story, and team pages — game days are the best time! 🚀";
+  else if(has("hi","hey","hello"))out="Hey "+ME.name+"! 👋 Ask me about your earnings, link, or payouts.";
+  else if(has("weather","recipe","code","essay","poem","joke","president","math","who is","meaning of","write me","homework"))
+    out="I can only help with your MidWest Tees affiliate stuff! 😊 Ask me about your earnings or your link.";
+  else out="I help with your affiliate account 🙂 Try “How much have I made?”, “What's my link?”, or “When do I get paid?”";
+  const t=bubble('bot','<span class="dots"><span></span><span></span><span></span></span>');setTimeout(()=>{t.innerHTML=out;},400);
+}
+function ask(text){text=(text||"").trim();if(!text)return;document.getElementById('input').value="";
+  bubble('you',text.replace(/</g,'&lt;'));LIVE?askLive(text):askDemo(text);}
+["How much have I made?","What's my link?","When do I get paid?","How does this work?","How do I earn more?"]
+  .forEach(q=>{const c=document.createElement('div');c.className='chip';c.textContent=q;c.onclick=()=>ask(q);document.getElementById('quick').appendChild(c);});
+(async function(){
+  if(TOKEN){try{const r=await fetch('/api/me?token='+encodeURIComponent(TOKEN));
+    if(r.ok){ME=await r.json();LIVE=true;
+      document.getElementById('modeTag').textContent='Live';document.getElementById('modeTag').className='tag live';
+      document.getElementById('foot').textContent='Your real earnings, straight from the store.';}}catch(e){}}
+  if(!LIVE)document.getElementById('foot').textContent='Demo mode — sample numbers. Open with your personal link to see your real earnings.';
+  render();
+})();
+</script>
+</body>
+</html>
