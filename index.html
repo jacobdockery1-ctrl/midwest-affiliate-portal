@@ -39,6 +39,17 @@
   .composer input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;color:var(--text);font-size:15px;outline:none}
   .composer input:focus{border-color:var(--brand)}
   .footnote{color:var(--muted);font-size:11px;text-align:center;padding:0 20px 14px}
+  .promo{margin:12px 20px 4px}
+  .promo-hd{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+  .psearch{display:flex;gap:8px}
+  .psearch input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px 13px;color:var(--text);font-size:15px;outline:none}
+  .psearch input:focus{border-color:var(--brand)}
+  .presults{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .prow{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+  .prow img{width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--panel2);flex:none}
+  .prow .pt{flex:1;font-size:14px;line-height:1.3}
+  .btn.sm{padding:8px 11px;font-size:12px;white-space:nowrap}
+  .muted{color:var(--muted);font-size:13px}
 </style>
 </head>
 <body>
@@ -53,6 +64,14 @@
     <div class="card"><div class="lbl">Sales you drove</div><div class="big" id="statSales">$0.00</div></div>
   </div>
   <div class="linkbar"><div class="lk" id="myLink">…</div><button class="btn" onclick="copyLink()">Copy</button></div>
+  <div class="promo">
+    <div class="promo-hd">Promote a specific product</div>
+    <div class="psearch">
+      <input id="pq" placeholder="Search a product to share…" autocomplete="off" onkeydown="if(event.key==='Enter')searchProducts(this.value)">
+      <button class="btn" onclick="searchProducts(document.getElementById('pq').value)">Search</button>
+    </div>
+    <div id="prodResults" class="presults"></div>
+  </div>
   <div class="chat" id="chat">
     <div class="msg bot"><span class="lead">Ask me anything about your affiliate account! 😊</span>Type a question or tap a button. I keep answers nice and simple.</div>
   </div>
@@ -76,6 +95,31 @@ function render(){document.getElementById('affName').textContent=ME.name;
   document.getElementById('myLink').textContent=ME.link;}
 function bubble(cls,html){const d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d;}
 function copyLink(){navigator.clipboard&&navigator.clipboard.writeText(ME.link);bubble('bot','<span class="lead">Copied! ✅</span>Your link is ready to paste anywhere.');}
+function escHtml(s){return String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
+function copyText(t){navigator.clipboard&&navigator.clipboard.writeText(t);
+  bubble('bot','<span class="lead">Copied! ✅</span>Your product link is ready — paste it anywhere.');}
+async function searchProducts(q){
+  q=(q||'').trim();
+  const wrap=document.getElementById('prodResults');
+  if(!q){wrap.innerHTML='';return;}
+  if(!LIVE){wrap.innerHTML='<div class="muted">Open your real portal link to search products.</div>';return;}
+  wrap.innerHTML='<div class="muted">Searching…</div>';
+  try{
+    const r=await fetch('/api/products?q='+encodeURIComponent(q)+'&token='+encodeURIComponent(TOKEN));
+    const d=await r.json();
+    const list=d.products||[];
+    if(!list.length){wrap.innerHTML='<div class="muted">No products found — try another word.</div>';return;}
+    wrap.innerHTML='';
+    list.forEach(p=>{
+      const row=document.createElement('div');row.className='prow';
+      const img=p.image?('<img src="'+escHtml(p.image)+'" alt="">'):('<div style="width:44px;height:44px;border-radius:8px;background:var(--panel2)"></div>');
+      row.innerHTML=img+'<div class="pt">'+escHtml(p.title)+'</div>';
+      const b=document.createElement('button');b.className='btn sm';b.textContent='Copy link';
+      b.onclick=()=>copyText(p.link);
+      row.appendChild(b);wrap.appendChild(row);
+    });
+  }catch(e){wrap.innerHTML='<div class="muted">Couldn\'t search right now — try again.</div>';}
+}
 async function askLive(q){
   const t=bubble('bot','<span class="dots"><span></span><span></span><span></span></span>');
   try{const r=await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},
