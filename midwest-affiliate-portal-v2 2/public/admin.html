@@ -112,6 +112,16 @@
   </div>
 </div>
 
+  <div class="panel">
+    <h2>Groups — FB/destash groups affiliates can join</h2>
+    <div class="row">
+      <div class="field" style="flex:1;min-width:180px"><label>Group name</label><input id="gName" placeholder="MidWest Destash — Facebook"></div>
+      <div class="field" style="flex:2;min-width:220px"><label>Link</label><input id="gUrl" placeholder="https://facebook.com/groups/..."></div>
+    </div>
+    <div class="field" style="margin-top:10px"><label>Short description (optional)</label><input id="gDesc" placeholder="Post your links here — 5k members"></div>
+    <div style="margin-top:10px"><button class="btn" onclick="addGroup()">Add group</button></div>
+    <div id="grpRows" style="margin-top:14px"></div>
+  </div>
 <div class="toast" id="toast"></div>
 <div class="modal" id="modal"><div class="box">
   <h2 id="mTitle" style="margin-top:0">New affiliate 🎉</h2>
@@ -139,6 +149,7 @@ function show(data){
   if(DEMO)document.getElementById('demoTag').style.display='inline-block';
   paint(data);
   loadItems();
+  loadGroups();
 }
 function paint(data){
   const a=data.affiliates||[];
@@ -260,6 +271,41 @@ async function delItem(id){
   if(!confirm('Delete this item?'))return;
   const r=await fetch('/api/admin/library/'+id,{method:'DELETE',headers:h()});
   if(r.ok){toast('Deleted');loadItems();}else toast('Error');
+}
+async function addGroup(){
+  const name=document.getElementById('gName').value.trim();
+  const url=document.getElementById('gUrl').value.trim();
+  if(!name||!url)return toast('Enter a name and link');
+  if(DEMO)return toast('(demo) group added');
+  const r=await fetch('/api/admin/groups',{method:'POST',headers:h(),body:JSON.stringify({name,url,description:document.getElementById('gDesc').value.trim()})});
+  const d=await r.json();
+  if(!r.ok)return toast(d.error||'Error');
+  toast('Group added!');
+  ['gName','gUrl','gDesc'].forEach(id=>document.getElementById(id).value='');
+  loadGroups();
+}
+async function loadGroups(){
+  const wrap=document.getElementById('grpRows');
+  if(!wrap)return;
+  if(DEMO){wrap.innerHTML='<div class="muted">Groups you add show here.</div>';return;}
+  try{
+    const r=await fetch('/api/admin/groups',{headers:h()});
+    const d=await r.json();const groups=d.groups||[];
+    if(!groups.length){wrap.innerHTML='<div class="muted">No groups yet — add one above.</div>';return;}
+    wrap.innerHTML='';
+    groups.forEach(g=>{
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding:8px 0';
+      row.innerHTML='<div style="flex:1"><b>'+esc(g.name)+'</b><br><a href="'+esc(g.url)+'" target="_blank" style="font-size:12px">'+esc(g.url)+'</a></div>';
+      const b=document.createElement('button');b.className='btn ghost sm';b.textContent='Delete';b.onclick=()=>delGroup(g.id);
+      row.appendChild(b);wrap.appendChild(row);
+    });
+  }catch(e){wrap.innerHTML='<div class="muted">Could not load groups.</div>';}
+}
+async function delGroup(id){
+  if(!confirm('Delete this group?'))return;
+  const r=await fetch('/api/admin/groups/'+id,{method:'DELETE',headers:h()});
+  if(r.ok){toast('Deleted');loadGroups();}else toast('Error');
 }
 </script>
 </body>
