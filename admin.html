@@ -93,6 +93,23 @@
       </table>
     </div>
   </div>
+
+  <div class="panel">
+    <h2>Post Library — stuff affiliates pull &amp; post</h2>
+    <div class="row">
+      <div class="field" style="flex:1;min-width:180px"><label>Title</label><input id="iTitle" placeholder="Destash: Beer Spangle Tee"></div>
+      <div class="field"><label>Price / deal</label><input id="iPrice" placeholder="$8 clearance"></div>
+      <div class="field" style="flex:1;min-width:180px"><label>Shopify handle (optional — links to that product)</label><input id="iHandle" placeholder="beer-spangle-tees"></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="field" style="flex:1;min-width:220px"><label>Short description</label><input id="iDesc" placeholder="Soft tri-blend, sizes S–XXL"></div>
+      <div class="field"><label>Photo</label><input id="iImg" type="file" accept="image/*"></div>
+    </div>
+    <div class="field" style="margin-top:10px"><label>Talking points / caption for affiliates to copy</label>
+      <textarea id="iTalk" rows="2" placeholder="Grab this before it's gone! Comment your size to order 👇" style="background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--text);font-size:14px;font-family:inherit"></textarea></div>
+    <div style="margin-top:10px"><button class="btn" onclick="addItem()">Add to library</button></div>
+    <div id="libRows" style="margin-top:14px"></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -121,6 +138,7 @@ function show(data){
   document.getElementById('dash').style.display='block';
   if(DEMO)document.getElementById('demoTag').style.display='inline-block';
   paint(data);
+  loadItems();
 }
 function paint(data){
   const a=data.affiliates||[];
@@ -173,7 +191,7 @@ function showNew(d){
 function closeModal(){document.getElementById('modal').style.display='none';}
 
 async function pay(r){
-  if(!confirm('Mark '+money(r.owed)+' as paid to '+r.name+'? This records the payout so it won\\'t be paid twice.'))return;
+  if(!confirm('Mark '+money(r.owed)+' as paid to '+r.name+'? This records the payout so it will not be paid twice.'))return;
   if(DEMO){toast('(demo) marked paid');return;}
   const res=await fetch('/api/admin/affiliate/'+r.id+'/pay',{method:'POST',headers:h(),body:JSON.stringify({})});
   const d=await res.json();
@@ -194,7 +212,54 @@ function demoAdd(b){const tag=b.name.toLowerCase().replace(/[^a-z0-9]+/g,'_');
   demoState.affiliates.push({id:String(Date.now()),name:b.name,tag,orders:0,sales:0,earned:0,paid:0,owed:0,token:'demo_'+tag});
   paint(demoState);
   showNew({affiliate:{name:b.name,link:'https://shopmidwesttees.com/?utm_source='+tag},portalPath:'/?token=demo_'+tag,
-    welcome:'Hey '+b.name+'! 🎉 You\\'re a MidWest Tees affiliate. Share your link and earn 10%!\\n\\nhttps://shopmidwesttees.com/?utm_source='+tag});
+    welcome:'Hey '+b.name+'! You are a MidWest Tees affiliate. Share your link and earn 10 percent. https://shopmidwesttees.com/?utm_source='+tag});
+}
+
+/* ---- Post Library ---- */
+async function addItem(){
+  const title=document.getElementById('iTitle').value.trim();
+  if(!title)return toast('Enter a title');
+  const body={title,
+    price:document.getElementById('iPrice').value.trim(),
+    description:document.getElementById('iDesc').value.trim(),
+    talking_points:document.getElementById('iTalk').value.trim(),
+    product_handle:document.getElementById('iHandle').value.trim()};
+  if(DEMO)return toast('(demo) item added');
+  const send=async()=>{
+    const r=await fetch('/api/admin/library',{method:'POST',headers:h(),body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok)return toast(d.error||'Error');
+    toast('Added to library!');
+    ['iTitle','iPrice','iDesc','iTalk','iHandle'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('iImg').value='';
+    loadItems();
+  };
+  const f=document.getElementById('iImg').files[0];
+  if(f){const rd=new FileReader();rd.onload=()=>{body.image_base64=rd.result;send();};rd.readAsDataURL(f);}
+  else send();
+}
+async function loadItems(){
+  const wrap=document.getElementById('libRows');
+  if(DEMO){wrap.innerHTML='<div class="muted">Items you add show here.</div>';return;}
+  try{
+    const r=await fetch('/api/admin/library',{headers:h()});
+    const d=await r.json();const items=d.items||[];
+    if(!items.length){wrap.innerHTML='<div class="muted">No items yet — add one above.</div>';return;}
+    wrap.innerHTML='';
+    items.forEach(it=>{
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding:8px 0';
+      const img=it.image_url?('<img src="'+esc(it.image_url)+'" style="width:40px;height:40px;border-radius:6px;object-fit:cover">'):'<div style="width:40px;height:40px;border-radius:6px;background:var(--panel2)"></div>';
+      row.innerHTML=img+'<div style="flex:1"><b>'+esc(it.title)+'</b> <span class="muted">'+esc(it.price||'')+'</span></div>';
+      const b=document.createElement('button');b.className='btn ghost sm';b.textContent='Delete';b.onclick=()=>delItem(it.id);
+      row.appendChild(b);wrap.appendChild(row);
+    });
+  }catch(e){wrap.innerHTML='<div class="muted">Could not load items.</div>';}
+}
+async function delItem(id){
+  if(!confirm('Delete this item?'))return;
+  const r=await fetch('/api/admin/library/'+id,{method:'DELETE',headers:h()});
+  if(r.ok){toast('Deleted');loadItems();}else toast('Error');
 }
 </script>
 </body>
