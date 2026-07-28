@@ -173,7 +173,7 @@ function showNew(d){
 function closeModal(){document.getElementById('modal').style.display='none';}
 
 async function pay(r){
-  if(!confirm('Mark '+money(r.owed)+' as paid to '+r.name+'? This records the payout so it won\\'t be paid twice.'))return;
+  if(!confirm('Mark '+money(r.owed)+' as paid to '+r.name+'? This records the payout so it will not be paid twice.'))return;
   if(DEMO){toast('(demo) marked paid');return;}
   const res=await fetch('/api/admin/affiliate/'+r.id+'/pay',{method:'POST',headers:h(),body:JSON.stringify({})});
   const d=await res.json();
@@ -194,7 +194,7 @@ function demoAdd(b){const tag=b.name.toLowerCase().replace(/[^a-z0-9]+/g,'_');
   demoState.affiliates.push({id:String(Date.now()),name:b.name,tag,orders:0,sales:0,earned:0,paid:0,owed:0,token:'demo_'+tag});
   paint(demoState);
   showNew({affiliate:{name:b.name,link:'https://shopmidwesttees.com/?utm_source='+tag},portalPath:'/?token=demo_'+tag,
-    welcome:'Hey '+b.name+'! 🎉 You\\'re a MidWest Tees affiliate. Share your link and earn 10%!\\n\\nhttps://shopmidwesttees.com/?utm_source='+tag});
+    welcome:'Hey '+b.name+'! You are a MidWest Tees affiliate. Share your link and earn 10 percent. https://shopmidwesttees.com/?utm_source='+tag});
 }
 </script>
 </body>
