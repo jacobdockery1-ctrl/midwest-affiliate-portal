@@ -86,6 +86,10 @@
     <div class="promo-hd">Ready to post — pull &amp; share</div>
     <div id="libItems" class="presults"><div class="muted">Loading…</div></div>
   </div>
+    <div class="lib">
+    <div class="promo-hd">Groups to join &amp; post in</div>
+    <div id="grpItems" class="presults"><div class="muted">Loading…</div></div>
+  </div>
   <div class="chat" id="chat">
     <div class="msg bot"><span class="lead">Ask me anything about your affiliate account! 😊</span>Type a question or tap a button. I keep answers nice and simple.</div>
   </div>
@@ -134,6 +138,26 @@ async function loadLibrary(){
       el.appendChild(acts);wrap.appendChild(el);
     });
   }catch(e){wrap.innerHTML='<div class="muted">Couldn\'t load right now.</div>';}
+}
+async function loadGroups(){
+  const wrap=document.getElementById('grpItems');
+  if(!wrap)return;
+  if(!LIVE){wrap.innerHTML='<div class="muted">Open your real portal link to see groups to join.</div>';return;}
+  try{
+    const r=await fetch('/api/groups?token='+encodeURIComponent(TOKEN));
+    const d=await r.json();const groups=d.groups||[];
+    if(!groups.length){wrap.innerHTML='<div class="muted">No groups yet — check back soon!</div>';return;}
+    wrap.innerHTML='';
+    groups.forEach(g=>{
+      const el=document.createElement('div');el.className='litem';
+      const desc=g.description?('<div class="ds">'+escHtml(g.description)+'</div>'):'';
+      el.innerHTML='<div class="tt">'+escHtml(g.name)+'</div>'+desc;
+      const acts=document.createElement('div');acts.className='acts';
+      const a=document.createElement('a');a.className='btn sm ghost';a.textContent='Join group →';a.href=g.url;a.target='_blank';a.rel='noopener';acts.appendChild(a);
+      const b=document.createElement('button');b.className='btn sm';b.textContent='Copy link';b.onclick=()=>copyText(g.url);acts.appendChild(b);
+      el.appendChild(acts);wrap.appendChild(el);
+    });
+  }catch(e){wrap.innerHTML='<div class="muted">Could not load groups.</div>';}
 }
 async function searchProducts(q){
   q=(q||'').trim();
@@ -191,6 +215,7 @@ function ask(text){text=(text||"").trim();if(!text)return;document.getElementByI
   if(!LIVE)document.getElementById('foot').textContent='Demo mode — sample numbers. Open with your personal link to see your real earnings.';
   render();
   loadLibrary();
+  loadGroups();
 })();
 </script>
 </body>
