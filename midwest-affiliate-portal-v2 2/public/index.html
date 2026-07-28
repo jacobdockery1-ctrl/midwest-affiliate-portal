@@ -90,6 +90,18 @@
     <div class="promo-hd">Groups to join &amp; post in</div>
     <div id="grpItems" class="presults"><div class="muted">Loading…</div></div>
   </div>
+    <div class="lib">
+    <div class="promo-hd">Earn more — refer schools &amp; teams (MSM Market)</div>
+    <div class="litem">
+      <div class="tt">Know a school, team, or club? 🏫</div>
+      <div class="ds">Refer them → we build their spirit store <b>free</b> → you earn <b>10% of everything it sells</b>, for as long as it's live. Just introductions, no selling.</div>
+      <div class="tp" id="msmLink">…</div>
+      <div class="acts">
+        <button class="btn sm" onclick="copyText(document.getElementById('msmLink').textContent)">Copy my MSM link</button>
+        <button class="btn sm ghost" id="msmMsgBtn">Copy message</button>
+      </div>
+    </div>
+  </div>
   <div class="chat" id="chat">
     <div class="msg bot"><span class="lead">Ask me anything about your affiliate account! 😊</span>Type a question or tap a button. I keep answers nice and simple.</div>
   </div>
@@ -159,6 +171,13 @@ async function loadGroups(){
     });
   }catch(e){wrap.innerHTML='<div class="muted">Could not load groups.</div>';}
 }
+function renderMsm(){
+  const tag=(ME&&ME.tag)?ME.tag:'yourname';
+  const link='https://msmgifts.com/?ref='+encodeURIComponent(tag);
+  const el=document.getElementById('msmLink');if(el)el.textContent=link;
+  const btn=document.getElementById('msmMsgBtn');
+  if(btn)btn.onclick=()=>copyText("Your school/team can get a FREE online spirit store — MidWest Tees builds it, loads the gear, takes the orders, and ships. Check it out: "+link);
+}
 async function searchProducts(q){
   q=(q||'').trim();
   const wrap=document.getElementById('prodResults');
@@ -214,6 +233,7 @@ function ask(text){text=(text||"").trim();if(!text)return;document.getElementByI
       document.getElementById('foot').textContent='Your real earnings, straight from the store.';}}catch(e){}}
   if(!LIVE)document.getElementById('foot').textContent='Demo mode — sample numbers. Open with your personal link to see your real earnings.';
   render();
+  renderMsm();
   loadLibrary();
   loadGroups();
 })();
