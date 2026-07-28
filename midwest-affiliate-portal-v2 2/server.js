@@ -197,6 +197,52 @@ app.delete('/api/admin/library/:id', adminAuth, async (req, res) => {
   catch (e) { console.error(e); res.status(500).json({ error: e.message }); }
 });
 
+/* ------------------------- Groups (Facebook/destash groups to join) ------------------------- */
+app.get('/api/groups', affiliateAuth, async (_req, res) => {
+  try {
+    const items = await store.listGroups(true);
+    res.json({ groups: items.map(g => ({ id: g.id, name: g.name, url: g.url, description: g.description })) });
+  } catch (e) { console.error(e); res.status(502).json({ error: 'Could not load groups.' }); }
+});
+
+app.get('/api/admin/groups', adminAuth, async (_req, res) => {
+  try { res.json({ groups: await store.listGroups(false) }); }
+  catch (e) { console.error(e); res.status(500).json({ error: 'Could not load groups.' }); }
+});
+
+app.post('/api/admin/groups', adminAuth, async (req, res) => {
+  const b = req.body || {};
+  if (!b.name || !b.url) return res.status(400).json({ error: 'Name and link are required.' });
+  try { res.json({ group: await store.createGroup({ name: b.name, url: b.url, description: b.description }) }); }
+  catch (e) { console.error(e); res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/admin/groups/:id', adminAuth, async (req, res) => {
+  try { await store.deleteGroup(req.params.id); res.json({ ok: true }); }
+  catch (e) { console.error(e); res.status(500).json({ error: e.message }); }
+});
+
+/* ------------------------- public signup ------------------------- */
+// Anyone can join and instantly get their own referral link.
+app.post('/api/signup', async (req, res) => {
+  const b = req.body || {};
+  if ((b.website || '').toString().trim()) return res.json({ ok: true }); // honeypot: silently drop bots
+  const name = (b.name || '').toString().trim().slice(0, 80);
+  const email = (b.email || '').toString().trim().slice(0, 120);
+  const venmo = (b.venmo || '').toString().trim().replace(/^@/, '').slice(0, 60);
+  if (name.length < 2) return res.status(400).json({ error: 'Please enter your name.' });
+  try {
+    const aff = await store.createAffiliate({ name, email, venmo, rate: 0.10 });
+    res.json({
+      name: aff.name,
+      link: linkFor(aff.tag),
+      portalPath: `/?token=${aff.token}`,
+      welcome: welcomeMessage(aff),
+    });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'Could not sign you up right now — try again.' }); }
+});
+
+app.get('/join', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'join.html')));
 app.get('/healthz', (_req, res) => res.send('ok'));
 app.get('/admin', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
