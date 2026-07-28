@@ -14,8 +14,12 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const PORT = process.env.PORT || 3000;
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '8mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+const productLinkFor = (tag, handle) =>
+  handle ? `${STORE_URL}/products/${handle}?utm_source=${encodeURIComponent(tag)}`
+         : `${STORE_URL}/?utm_source=${encodeURIComponent(tag)}`;
 
 const round2 = n => Math.round(n * 100) / 100;
 const linkFor = tag => `${STORE_URL}/?utm_source=${tag}`;
@@ -150,6 +154,47 @@ app.get('/api/products', affiliateAuth, async (req, res) => {
     console.error(e);
     res.status(502).json({ error: 'Could not search products right now.' });
   }
+});
+
+/* ------------------------- Post Library ------------------------- */
+// Affiliate: browse featured items, each with THEIR personal link.
+app.get('/api/library', affiliateAuth, async (req, res) => {
+  try {
+    const items = await store.listPostItems(true);
+    const tag = req.aff.tag;
+    res.json({
+      items: items.map(i => ({
+        id: i.id, title: i.title, price: i.price, description: i.description,
+        talking_points: i.talking_points, image: i.image_url,
+        link: productLinkFor(tag, i.product_handle),
+      })),
+    });
+  } catch (e) { console.error(e); res.status(502).json({ error: 'Could not load the library.' }); }
+});
+
+// Admin: list / add / delete items.
+app.get('/api/admin/library', adminAuth, async (_req, res) => {
+  try { res.json({ items: await store.listPostItems(false) }); }
+  catch (e) { console.error(e); res.status(500).json({ error: 'Could not load items.' }); }
+});
+
+app.post('/api/admin/library', adminAuth, async (req, res) => {
+  const b = req.body || {};
+  if (!b.title) return res.status(400).json({ error: 'Title is required.' });
+  try {
+    let image_url = b.image_url || null;
+    if (b.image_base64) image_url = await store.uploadPostImage(b.image_base64, b.title);
+    const item = await store.createPostItem({
+      title: b.title, price: b.price, description: b.description,
+      talking_points: b.talking_points, product_handle: b.product_handle, image_url,
+    });
+    res.json({ item });
+  } catch (e) { console.error(e); res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/admin/library/:id', adminAuth, async (req, res) => {
+  try { await store.deletePostItem(req.params.id); res.json({ ok: true }); }
+  catch (e) { console.error(e); res.status(500).json({ error: e.message }); }
 });
 
 app.get('/healthz', (_req, res) => res.send('ok'));
