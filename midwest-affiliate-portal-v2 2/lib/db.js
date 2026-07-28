@@ -70,3 +70,45 @@ export async function logChat({ affiliateId, question, answer }) {
   try { await db.from('mw_chat_logs').insert({ affiliate_id: affiliateId, question, answer }); }
   catch { /* logging is best-effort */ }
 }
+
+/* ------------------------- Post Library ------------------------- */
+export async function listPostItems(activeOnly = false) {
+  let q = db.from('mw_post_items').select('*').order('sort', { ascending: true }).order('created_at', { ascending: false });
+  if (activeOnly) q = q.eq('active', true);
+  const { data } = await q;
+  return data || [];
+}
+
+export async function createPostItem(fields) {
+  const row = {
+    title: fields.title,
+    price: fields.price || null,
+    description: fields.description || null,
+    talking_points: fields.talking_points || null,
+    image_url: fields.image_url || null,
+    product_handle: fields.product_handle || null,
+  };
+  const { data, error } = await db.from('mw_post_items').insert(row).select().single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function deletePostItem(id) {
+  const { error } = await db.from('mw_post_items').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
+// Upload a base64 data URL (or raw base64) to storage, return public URL.
+export async function uploadPostImage(base64, name) {
+  let b64 = base64, contentType = 'image/jpeg';
+  const m = /^data:(.+?);base64,(.*)$/.exec(base64 || '');
+  if (m) { contentType = m[1]; b64 = m[2]; }
+  const buffer = Buffer.from(b64, 'base64');
+  const ext = (contentType.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+  const path = `${Date.now()}-${(name || 'img').replace(/[^a-z0-9._-]/gi, '_').slice(0, 40)}.${ext}`;
+  const { error } = await db.storage.from('mw-post-images').upload(path, buffer, { contentType, upsert: false });
+  if (error) throw new Error(error.message);
+  const { data } = db.storage.from('mw-post-images').getPublicUrl(path);
+  return data.publicUrl;
+}
