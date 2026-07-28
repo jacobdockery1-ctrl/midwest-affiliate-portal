@@ -99,6 +99,27 @@ export async function deletePostItem(id) {
   return true;
 }
 
+/* ------------------------- Groups ------------------------- */
+export async function listGroups(activeOnly = false) {
+  let q = db.from('mw_groups').select('*').order('sort', { ascending: true }).order('created_at', { ascending: false });
+  if (activeOnly) q = q.eq('active', true);
+  const { data } = await q;
+  return data || [];
+}
+
+export async function createGroup(fields) {
+  const row = { name: fields.name, url: fields.url, description: fields.description || null };
+  const { data, error } = await db.from('mw_groups').insert(row).select().single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function deleteGroup(id) {
+  const { error } = await db.from('mw_groups').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
 // Upload a base64 data URL (or raw base64) to storage, return public URL.
 export async function uploadPostImage(base64, name) {
   let b64 = base64, contentType = 'image/jpeg';
