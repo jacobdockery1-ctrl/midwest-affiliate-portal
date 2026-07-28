@@ -127,6 +127,31 @@ app.post('/api/admin/affiliate/:id/pay', adminAuth, async (req, res) => {
   } catch (e) { console.error(e); res.status(500).json({ error: e.message }); }
 });
 
+// Product search — affiliate searches the store, gets THEIR link for each product.
+app.get('/api/products', affiliateAuth, async (req, res) => {
+  const q = (req.query.q || '').toString().slice(0, 80).trim();
+  if (!q) return res.json({ products: [] });
+  try {
+    const url = `${STORE_URL}/search/suggest.json?q=${encodeURIComponent(q)}` +
+                `&resources[type]=product&resources[limit]=10`;
+    const r = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (!r.ok) throw new Error('suggest ' + r.status);
+    const j = await r.json();
+    const items = (j.resources && j.resources.results && j.resources.results.products) || [];
+    const tag = encodeURIComponent(req.aff.tag);
+    res.json({
+      products: items.map(p => ({
+        title: p.title,
+        image: p.image || (p.featured_image && p.featured_image.url) || null,
+        link: `${STORE_URL}/products/${p.handle}?utm_source=${tag}`,
+      })),
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(502).json({ error: 'Could not search products right now.' });
+  }
+});
+
 app.get('/healthz', (_req, res) => res.send('ok'));
 app.get('/admin', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
