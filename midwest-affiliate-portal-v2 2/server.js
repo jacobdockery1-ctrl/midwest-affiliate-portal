@@ -89,8 +89,9 @@ app.post('/api/ask', affiliateAuth, async (req, res) => {
 // AI flyer: Claude writes the copy, Google paints a text-free background image.
 app.post('/api/flyer-ai', affiliateAuth, async (req, res) => {
   const theme = (req.body?.theme || '').toString().slice(0, 300).trim();
+  const products = Array.isArray(req.body?.products) ? req.body.products.slice(0, 3) : [];
   try {
-    const [copy, img] = await Promise.all([ flyerCopy(theme), flyerImage(theme) ]);
+    const [copy, img] = await Promise.all([ flyerCopy(theme, products), flyerImage(theme, products) ]);
     res.json({
       headline: copy.headline,
       subhead: copy.subhead,
