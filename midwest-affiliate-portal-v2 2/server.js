@@ -101,6 +101,28 @@ app.post('/api/flyer-ai', affiliateAuth, async (req, res) => {
   } catch (e) { console.error(e); res.status(502).json({ error: 'Could not make a flyer right now — try again.' }); }
 });
 
+// Save a finished flyer image, and list / delete an affiliate's saved flyers.
+app.post('/api/flyer/save', affiliateAuth, async (req, res) => {
+  const image = (req.body?.image || '').toString();
+  const headline = (req.body?.headline || '').toString();
+  if (!/^data:image\/[a-z0-9.+-]+;base64,/i.test(image)) return res.status(400).json({ error: 'No flyer image to save.' });
+  try {
+    const imageUrl = await store.uploadPostImage(image, 'flyer');
+    const flyer = await store.saveFlyer({ affiliateId: req.aff.id, headline, imageUrl });
+    res.json({ flyer });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'Could not save the flyer.' }); }
+});
+
+app.get('/api/flyer/list', affiliateAuth, async (req, res) => {
+  try { res.json({ flyers: await store.listFlyers(req.aff.id) }); }
+  catch (e) { console.error(e); res.status(500).json({ error: 'Could not load your flyers.' }); }
+});
+
+app.delete('/api/flyer/:id', affiliateAuth, async (req, res) => {
+  try { await store.deleteFlyer(req.params.id, req.aff.id); res.json({ ok: true }); }
+  catch (e) { console.error(e); res.status(500).json({ error: 'Could not delete the flyer.' }); }
+});
+
 /* --------------------------- admin API ----------------------------- */
 app.get('/api/admin/affiliates', adminAuth, async (_req, res) => {
   try {
