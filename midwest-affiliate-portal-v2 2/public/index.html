@@ -102,6 +102,14 @@
       </div>
     </div>
   </div>
+    <div class="lib">
+    <div class="promo-hd">Community — tips &amp; wins</div>
+    <div class="psearch">
+      <input id="fPost" placeholder="Share a tip or a win…" autocomplete="off" onkeydown="if(event.key==='Enter')postForum()">
+      <button class="btn" onclick="postForum()">Post</button>
+    </div>
+    <div id="forumFeed" class="presults" style="margin-top:10px"><div class="muted">Loading…</div></div>
+  </div>
   <div class="chat" id="chat">
     <div class="msg bot"><span class="lead">Ask me anything about your affiliate account! 😊</span>Type a question or tap a button. I keep answers nice and simple.</div>
   </div>
@@ -178,6 +186,40 @@ function renderMsm(){
   const btn=document.getElementById('msmMsgBtn');
   if(btn)btn.onclick=()=>copyText("Your school/team can get a FREE online spirit store — MidWest Tees builds it, loads the gear, takes the orders, and ships. Check it out: "+link);
 }
+async function loadForum(){
+  const wrap=document.getElementById('forumFeed');
+  if(!wrap)return;
+  if(!LIVE){wrap.innerHTML='<div class="muted">Open your real portal link to join the conversation.</div>';return;}
+  try{
+    const r=await fetch('/api/forum?token='+encodeURIComponent(TOKEN));
+    const d=await r.json();const posts=d.posts||[];
+    if(!posts.length){wrap.innerHTML='<div class="muted">No posts yet — be the first to share!</div>';return;}
+    wrap.innerHTML='';
+    posts.forEach(p=>{
+      const el=document.createElement('div');el.className='litem';
+      let html='<div class="tt">'+escHtml(p.author_name||'Affiliate')+'</div><div class="ds">'+escHtml(p.body)+'</div>';
+      (p.replies||[]).forEach(rp=>{html+='<div class="tp"><b>'+escHtml(rp.author_name||'Affiliate')+':</b> '+escHtml(rp.body)+'</div>';});
+      el.innerHTML=html;
+      const acts=document.createElement('div');acts.className='acts';
+      const inp=document.createElement('input');inp.placeholder='Reply…';inp.style.cssText='flex:1;min-width:120px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;color:var(--text);font-size:13px;outline:none';
+      inp.onkeydown=(e)=>{if(e.key==='Enter')replyForum(p.id,inp.value,inp);};
+      const b=document.createElement('button');b.className='btn sm';b.textContent='Reply';b.onclick=()=>replyForum(p.id,inp.value,inp);
+      acts.appendChild(inp);acts.appendChild(b);
+      el.appendChild(acts);wrap.appendChild(el);
+    });
+  }catch(e){wrap.innerHTML='<div class="muted">Could not load the community.</div>';}
+}
+async function postForum(){
+  const inp=document.getElementById('fPost');const body=(inp.value||'').trim();
+  if(!body)return;
+  if(!LIVE){bubble('bot','Open your real portal link to post here.');return;}
+  inp.value='';
+  try{await fetch('/api/forum',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:TOKEN,body})});loadForum();}catch(e){}
+}
+async function replyForum(parentId,body,inp){
+  body=(body||'').trim();if(!body)return;if(inp)inp.value='';
+  try{await fetch('/api/forum',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:TOKEN,body,parentId})});loadForum();}catch(e){}
+}
 async function searchProducts(q){
   q=(q||'').trim();
   const wrap=document.getElementById('prodResults');
@@ -236,6 +278,7 @@ function ask(text){text=(text||"").trim();if(!text)return;document.getElementByI
   renderMsm();
   loadLibrary();
   loadGroups();
+  loadForum();
 })();
 </script>
 </body>
