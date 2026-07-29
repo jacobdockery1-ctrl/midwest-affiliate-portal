@@ -145,10 +145,18 @@
   <div class="step" style="border-bottom:none">
     <div class="stepno"><span>✨</span><h2>Make an AI flyer</h2></div>
     <p class="say">Type what it's for — a game, a sale, back-to-school — and AI makes you a flyer with <b>your link</b> on it. Print it or post it.</p>
-    <div class="psearch" style="margin-top:16px">
-      <input id="aiTheme" placeholder="e.g. Friday night football game" autocomplete="off" onkeydown="if(event.key==='Enter')genFlyer()">
-      <button class="btn" id="genBtn" onclick="genFlyer()">Generate flyer ✨</button>
+    <input id="aiTheme" placeholder="e.g. Friday night football game" autocomplete="off" onkeydown="if(event.key==='Enter')genFlyer()" style="width:100%;background:#fff;border:2px solid #201e1d;border-radius:0;padding:14px;color:#201e1d;font-size:16px;outline:none;min-height:52px;font-family:inherit;margin-top:16px">
+    <div style="margin-top:16px">
+      <div class="promo-hd">Feature your shirts (pick up to 3 — optional)</div>
+      <p class="say" style="margin-bottom:10px">Search your store and add real products — the flyer uses those exact shirts.</p>
+      <div class="psearch">
+        <input id="flyerProdQ" placeholder="Search a shirt, hat, color…" autocomplete="off" onkeydown="if(event.key==='Enter')flyerProdSearch(this.value)">
+        <button class="btn ghost" onclick="flyerProdSearch(document.getElementById('flyerProdQ').value)">Search</button>
+      </div>
+      <div id="flyerSel" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
+      <div id="flyerProdResults" class="presults"></div>
     </div>
+    <button class="btn" id="genBtn" onclick="genFlyer()" style="margin-top:16px;width:100%">Generate flyer ✨</button>
     <div id="aiFlyerMsg" class="muted" style="margin-top:12px"></div>
     <div id="aiFlyerWrap" style="margin-top:18px;display:none">
       <div id="aiFlyerCard" style="background:#fff;color:#201e1d;border:2px solid #201e1d;overflow:hidden;position:relative">
@@ -270,23 +278,63 @@
 <script>
 const TOKEN = new URLSearchParams(location.search).get('token');
 function showTab(name,btn){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));if(btn)btn.classList.add('on');document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='panel-'+name));try{window.scrollTo(0,0);}catch(e){}}
+var SELP=[];
+async function flyerProdSearch(q){
+  q=(q||'').trim(); var wrap=document.getElementById('flyerProdResults');
+  if(!q){wrap.innerHTML='';return;}
+  wrap.innerHTML='<div class="muted">Searching\u2026</div>';
+  try{
+    var r=await fetch('/api/products?q='+encodeURIComponent(q)+'&token='+encodeURIComponent(TOKEN));
+    var d=await r.json(); var list=d.products||[];
+    if(!list.length){wrap.innerHTML='<div class="muted">No products found \u2014 try another word.</div>';return;}
+    wrap.innerHTML='';
+    list.forEach(function(p){
+      var row=document.createElement('div'); row.className='prow';
+      var img=p.image?('<img src="'+escHtml(p.image)+'" alt="">'):('<div style="width:44px;height:44px;background:var(--panel2)"></div>');
+      row.innerHTML=img+'<div class="pt">'+escHtml(p.title)+'</div>';
+      var b=document.createElement('button'); b.className='btn sm'; b.textContent='Add';
+      b.onclick=function(){addFlyerProduct(p);};
+      row.appendChild(b); wrap.appendChild(row);
+    });
+  }catch(e){wrap.innerHTML='<div class="muted">Couldn\'t search right now \u2014 try again.</div>';}
+}
+function addFlyerProduct(p){
+  if(SELP.length>=3) return;
+  if(SELP.some(function(x){return x.title===p.title;})) return;
+  SELP.push({title:p.title,image:p.image,link:p.link}); renderFlyerSel();
+}
+function removeFlyerProduct(i){ SELP.splice(i,1); renderFlyerSel(); }
+function renderFlyerSel(){
+  var w=document.getElementById('flyerSel'); w.innerHTML='';
+  SELP.forEach(function(p,i){
+    var chip=document.createElement('div');
+    chip.style.cssText='display:flex;align-items:center;gap:8px;border:2px solid #201e1d;padding:6px 8px;background:#fff';
+    var im=p.image?('<img src="'+escHtml(p.image)+'" style="width:34px;height:34px;object-fit:cover">'):'';
+    chip.innerHTML=im+'<span style="font-size:13px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(p.title)+'</span>';
+    var x=document.createElement('button'); x.textContent='\u2715'; x.className='btn sm ghost'; x.style.padding='2px 8px';
+    x.onclick=function(){removeFlyerProduct(i);};
+    chip.appendChild(x); w.appendChild(chip);
+  });
+}
 async function genFlyer(){
   var theme=(document.getElementById('aiTheme').value||'').trim();
   var btn=document.getElementById('genBtn'), msg=document.getElementById('aiFlyerMsg');
   btn.disabled=true; btn.textContent='Making it\u2026'; msg.textContent='Painting your flyer \u2014 this takes a few seconds \u2728';
   try{
-    var r=await fetch('/api/flyer-ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:TOKEN,theme:theme})});
+    var r=await fetch('/api/flyer-ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:TOKEN,theme:theme,products:SELP.map(function(p){return {title:p.title,image:p.image};})})});
     var j=await r.json();
     if(!r.ok) throw new Error(j.error||'failed');
     document.getElementById('aiFlyerHeadline').textContent=j.headline||'SHOP MIDWEST TEES';
     document.getElementById('aiFlyerSub').textContent=j.subhead||'Custom tees & spirit-wear';
     var img=document.getElementById('aiFlyerImg');
-    if(j.image){img.src=j.image;img.style.display='block';}else{img.style.display='none';}
+    if(j.image){ img.src=j.image; img.style.display='block'; }
+    else if(SELP.length && SELP[0].image){ img.src='/api/img?u='+encodeURIComponent(SELP[0].image); img.style.display='block'; }
+    else { img.style.display='none'; }
     var link=(ME&&ME.link)||(document.getElementById('myLink')?document.getElementById('myLink').textContent:'');
     document.getElementById('aiFlyerLink').textContent=link;
     document.getElementById('aiFlyerBy').textContent='SHARED BY '+((ME&&ME.name)||'a MidWest Tees affiliate');
     document.getElementById('aiFlyerWrap').style.display='block';
-    msg.textContent=j.imageError?'Made your flyer! (The AI picture is off right now \u2014 using a clean template.)':'Done! Download it below. \ud83d\udc47';
+    msg.textContent=j.image?'Done! Download it below. \ud83d\udc47':(SELP.length?'Made your flyer with your shirt! (AI art is off \u2014 showing your real product.)':'Made your flyer! (AI picture is off \u2014 using a clean template.)');
   }catch(e){ msg.textContent='Could not make it right now \u2014 try again in a sec.'; }
   btn.disabled=false; btn.textContent='Generate flyer \u2728';
 }
