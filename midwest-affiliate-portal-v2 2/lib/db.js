@@ -155,3 +155,24 @@ export async function uploadPostImage(base64, name) {
   const { data } = db.storage.from('mw-post-images').getPublicUrl(path);
   return data.publicUrl;
 }
+
+/* --------------------------- saved flyers --------------------------- */
+export async function saveFlyer({ affiliateId, headline, imageUrl }) {
+  const row = { affiliate_id: affiliateId, headline: (headline || '').slice(0, 120), image_url: imageUrl };
+  const { data, error } = await db.from('mw_flyers').insert(row).select().single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function listFlyers(affiliateId) {
+  const { data } = await db.from('mw_flyers')
+    .select('id, headline, image_url, created_at')
+    .eq('affiliate_id', affiliateId)
+    .order('created_at', { ascending: false });
+  return data || [];
+}
+
+export async function deleteFlyer(id, affiliateId) {
+  const { error } = await db.from('mw_flyers').delete().eq('id', id).eq('affiliate_id', affiliateId);
+  if (error) throw new Error(error.message);
+}
