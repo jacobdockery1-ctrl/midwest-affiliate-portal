@@ -61,7 +61,6 @@
   .litem .acts{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
   .btn.ghost{background:var(--panel2);border:1px solid var(--line);color:var(--text);text-decoration:none;display:inline-block}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
@@ -140,17 +139,15 @@
     <div id="flyerCard" style="background:#fff;color:#111;border-radius:14px;overflow:hidden;position:relative">
       <div style="background:linear-gradient(135deg,#5b8cff,#8a5bff);color:#fff;padding:18px 20px">
         <div style="font-weight:800;font-size:22px;letter-spacing:.5px">MIDWEST TEES</div>
-        <div id="flyerHead" style="font-size:15px;opacity:.95;margin-top:2px">Shop our gear — scan to order</div>
+        <div id="flyerHead" style="font-size:15px;opacity:.95;margin-top:2px">Shop our gear today</div>
       </div>
       <img id="flyerImg" style="width:100%;max-height:300px;object-fit:cover;display:none">
       <div style="padding:18px 20px">
         <div id="flyerTitle" style="font-size:20px;font-weight:800">MidWest Tees</div>
-        <div style="display:flex;align-items:center;gap:16px;margin-top:14px">
-          <div id="flyerQR" style="width:120px;height:120px;flex:none"></div>
-          <div>
-            <div style="font-weight:800;font-size:17px">Scan to shop 📲</div>
-            <div style="font-size:12px;color:#555;margin-top:4px;word-break:break-all" id="flyerLink"></div>
-          </div>
+        <div style="margin-top:14px">
+          <div style="font-weight:800;font-size:18px">Shop now 🛍️</div>
+          <div style="font-size:15px;color:#1a7f4b;font-weight:700;margin-top:2px" id="flyerDomain">shopmidwesttees.com</div>
+          <div style="font-size:12px;color:#555;margin-top:6px;word-break:break-all" id="flyerLink"></div>
         </div>
       </div>
       <div style="background:#f2f4f8;color:#666;font-size:11px;text-align:center;padding:8px" id="flyerBy">Shared by a MidWest Tees affiliate</div>
@@ -284,11 +281,10 @@ function renderFlyer(){
   const raw=(FLYER_P&&FLYER_P.image)?FLYER_P.image:null;
   if(raw){img.src='/api/img?u='+encodeURIComponent(raw);img.style.display='block';}else{img.style.display='none';img.removeAttribute('src');}
   document.getElementById('flyerTitle').textContent=FLYER_P?FLYER_P.title:'MidWest Tees';
-  document.getElementById('flyerHead').textContent=FLYER_P?'Get yours — scan to order':'Shop our gear — scan to order';
+  document.getElementById('flyerHead').textContent=FLYER_P?'Get yours today':'Shop our gear today';
   document.getElementById('flyerLink').textContent=link.replace(/^https?:\/\//,'');
   document.getElementById('flyerBy').textContent='Shared by '+((ME&&ME.name)?ME.name:'a MidWest Tees affiliate');
-  const qr=document.getElementById('flyerQR');qr.innerHTML='';
-  try{new QRCode(qr,{text:link,width:120,height:120,correctLevel:QRCode.CorrectLevel.M});}catch(e){qr.innerHTML='<div style="font-size:11px;color:#999">loading…</div>';}
+  const dom=document.getElementById('flyerDomain');if(dom)dom.textContent=link.replace(/^https?:\/\//,'').split('/')[0];
 }
 function downloadFlyer(){
   const el=document.getElementById('flyerCard');
