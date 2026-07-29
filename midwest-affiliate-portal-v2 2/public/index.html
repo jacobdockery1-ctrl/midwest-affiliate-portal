@@ -104,6 +104,7 @@
   <nav class="tabs">
     <button class="tab on" data-tab="home" onclick="showTab('home',this)">Home</button>
     <button class="tab" data-tab="posts" onclick="showTab('posts',this)">Posts</button>
+    <button class="tab" data-tab="flyer" onclick="showTab('flyer',this)">Flyer</button>
     <button class="tab" data-tab="groups" onclick="showTab('groups',this)">Groups</button>
     <button class="tab" data-tab="more" onclick="showTab('more',this)">More</button>
   </nav>
@@ -125,7 +126,7 @@
   </div>
 
   <div class="panel" id="panel-posts">
-  <div class="step">
+  <div class="step" style="border-bottom:none">
     <div class="stepno"><span>1</span><h2>Grab the wording</h2></div>
     <p class="say">Every post below has the words <b>already written</b>. Hit "Copy caption" — that copies the wording <i>and</i> your link together.</p>
     <div class="lib"><div id="libItems" class="presults"><div class="muted">Loading…</div></div></div>
@@ -138,11 +139,38 @@
       <div id="prodResults" class="presults"></div>
     </div>
   </div>
+  </div>
 
+  <div class="panel" id="panel-flyer">
   <div class="step" style="border-bottom:none">
-    <div class="stepno"><span>2</span><h2>Or print a flyer 🖨️</h2></div>
-    <p class="say">Makes a printable flyer with <b>your link</b> on it. Pin it up at games, gyms, work, church.</p>
-    <div style="margin-top:18px"><button class="btn" onclick="openFlyer()">Make my flyer →</button></div>
+    <div class="stepno"><span>✨</span><h2>Make an AI flyer</h2></div>
+    <p class="say">Type what it's for — a game, a sale, back-to-school — and AI makes you a flyer with <b>your link</b> on it. Print it or post it.</p>
+    <div class="psearch" style="margin-top:16px">
+      <input id="aiTheme" placeholder="e.g. Friday night football game" autocomplete="off" onkeydown="if(event.key==='Enter')genFlyer()">
+      <button class="btn" id="genBtn" onclick="genFlyer()">Generate flyer ✨</button>
+    </div>
+    <div id="aiFlyerMsg" class="muted" style="margin-top:12px"></div>
+    <div id="aiFlyerWrap" style="margin-top:18px;display:none">
+      <div id="aiFlyerCard" style="background:#fff;color:#201e1d;border:2px solid #201e1d;overflow:hidden;position:relative">
+        <div style="background:#ec3013">
+          <img id="aiFlyerImg" style="width:100%;max-height:360px;object-fit:cover;display:none">
+          <div style="padding:22px">
+            <div id="aiFlyerHeadline" style="color:#fff;font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.05;text-shadow:0 2px 12px rgba(0,0,0,.35)">SHOP MIDWEST TEES</div>
+            <div id="aiFlyerSub" style="color:#fff;font-size:15px;margin-top:6px;text-shadow:0 1px 8px rgba(0,0,0,.35)">Custom tees &amp; spirit-wear</div>
+          </div>
+        </div>
+        <div style="padding:22px">
+          <div style="font-size:20px;font-weight:700">Shop now 🛍️</div>
+          <div style="font-size:20px;color:#c1250c;font-weight:700;margin-top:6px">shopmidwesttees.com</div>
+          <div id="aiFlyerLink" style="font-size:12px;color:#6b6866;margin-top:8px;word-break:break-all"></div>
+        </div>
+        <div id="aiFlyerBy" style="background:#eceae9;color:#6b6866;font-size:11px;padding:12px 22px;letter-spacing:.06em;text-transform:uppercase;font-weight:700">SHARED BY A MIDWEST TEES AFFILIATE</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn" onclick="downloadAiFlyer()">Download PNG</button>
+        <button class="btn ghost" onclick="genFlyer()">Regenerate</button>
+      </div>
+    </div>
   </div>
   </div>
 
@@ -242,6 +270,30 @@
 <script>
 const TOKEN = new URLSearchParams(location.search).get('token');
 function showTab(name,btn){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));if(btn)btn.classList.add('on');document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='panel-'+name));try{window.scrollTo(0,0);}catch(e){}}
+async function genFlyer(){
+  var theme=(document.getElementById('aiTheme').value||'').trim();
+  var btn=document.getElementById('genBtn'), msg=document.getElementById('aiFlyerMsg');
+  btn.disabled=true; btn.textContent='Making it\u2026'; msg.textContent='Painting your flyer \u2014 this takes a few seconds \u2728';
+  try{
+    var r=await fetch('/api/flyer-ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:TOKEN,theme:theme})});
+    var j=await r.json();
+    if(!r.ok) throw new Error(j.error||'failed');
+    document.getElementById('aiFlyerHeadline').textContent=j.headline||'SHOP MIDWEST TEES';
+    document.getElementById('aiFlyerSub').textContent=j.subhead||'Custom tees & spirit-wear';
+    var img=document.getElementById('aiFlyerImg');
+    if(j.image){img.src=j.image;img.style.display='block';}else{img.style.display='none';}
+    var link=(ME&&ME.link)||(document.getElementById('myLink')?document.getElementById('myLink').textContent:'');
+    document.getElementById('aiFlyerLink').textContent=link;
+    document.getElementById('aiFlyerBy').textContent='SHARED BY '+((ME&&ME.name)||'a MidWest Tees affiliate');
+    document.getElementById('aiFlyerWrap').style.display='block';
+    msg.textContent=j.imageError?'Made your flyer! (The AI picture is off right now \u2014 using a clean template.)':'Done! Download it below. \ud83d\udc47';
+  }catch(e){ msg.textContent='Could not make it right now \u2014 try again in a sec.'; }
+  btn.disabled=false; btn.textContent='Generate flyer \u2728';
+}
+function downloadAiFlyer(){
+  var el=document.getElementById('aiFlyerCard');
+  html2canvas(el,{useCORS:true,backgroundColor:'#ffffff',scale:2}).then(function(c){var a=document.createElement('a');a.download='midwest-ai-flyer.png';a.href=c.toDataURL('image/png');a.click();}).catch(function(){alert('Could not save \u2014 try a screenshot instead.');});
+}
 let LIVE=false;
 let ME={name:"Sarah",tag:"sarah",venmo:"sarah-midwest",rate:0.10,sales:482,orders:6,earned:48.2,paid:0,owed:48.2,link:"https://shopmidwesttees.com/?utm_source=sarah"};
 const history=[];
