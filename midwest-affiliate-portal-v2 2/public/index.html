@@ -169,10 +169,15 @@
           <div id="aiFlyerLink" style="display:none"></div>
         </div>
       </div>
-      <div style="display:flex;gap:8px;margin-top:12px">
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
         <button class="btn" onclick="downloadAiFlyer()">Download PNG</button>
+        <button class="btn ghost" onclick="saveFlyer(this)">Save to my flyers</button>
         <button class="btn ghost" onclick="genFlyer()">Regenerate</button>
       </div>
+    </div>
+    <div id="flyerGalleryWrap" style="margin-top:26px;display:none">
+      <div class="promo-hd">Your saved flyers</div>
+      <div id="flyerGallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:10px"></div>
     </div>
   </div>
   </div>
@@ -335,6 +340,43 @@ async function genFlyer(){
     if(j.image){ msg.textContent = SELP.length ? 'Done! Tweak your text and it updates live. Download below. 👇' : 'Done! Tip: hit Add on a shirt above to put it on the flyer, then Regenerate. 👇'; } else { msg.textContent = 'Made your flyer'+(SELP.length?' with your real shirt':'')+' (AI image is off right now).'; }
   }catch(e){ msg.textContent='Could not make it right now — try again in a sec.'; }
   btn.disabled=false; btn.textContent='Generate flyer ✨';
+}
+function saveFlyer(btn){
+  var el=document.getElementById('aiFlyerCard');
+  if(!el || document.getElementById('aiFlyerWrap').style.display==='none') return;
+  var old=btn?btn.textContent:''; if(btn){btn.disabled=true;btn.textContent='Saving…';}
+  html2canvas(el,{useCORS:true,backgroundColor:'#ffffff',scale:2}).then(function(c){
+    var data=c.toDataURL('image/png');
+    var headline=document.getElementById('aiFlyerHeadline').textContent||'';
+    return fetch('/api/flyer/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:TOKEN,headline:headline,image:data})});
+  }).then(function(r){return r.json();}).then(function(j){
+    if(j&&j.flyer){ loadFlyers(); if(btn)btn.textContent='Saved ✓'; }
+    else if(btn){ btn.textContent='Try again'; }
+  }).catch(function(){ if(btn)btn.textContent='Try again'; })
+  .then(function(){ if(btn)setTimeout(function(){btn.disabled=false;btn.textContent=old||'Save to my flyers';},1600); });
+}
+async function loadFlyers(){
+  var wrap=document.getElementById('flyerGallery'), sec=document.getElementById('flyerGalleryWrap');
+  if(!wrap||!sec) return;
+  if(typeof LIVE!=='undefined' && !LIVE){ sec.style.display='none'; return; }
+  try{
+    var r=await fetch('/api/flyer/list?token='+encodeURIComponent(TOKEN));
+    var d=await r.json(); var list=d.flyers||[];
+    if(!list.length){ wrap.innerHTML=''; sec.style.display='none'; return; }
+    sec.style.display='block'; wrap.innerHTML='';
+    list.forEach(function(f){
+      var cell=document.createElement('div'); cell.style.cssText='position:relative;border:2px solid #201e1d';
+      var a=document.createElement('a'); a.href=f.image_url; a.target='_blank'; a.rel='noopener';
+      a.innerHTML='<img src="'+escHtml(f.image_url)+'" style="width:100%;display:block">';
+      var x=document.createElement('button'); x.textContent='✕'; x.title='Delete';
+      x.style.cssText='position:absolute;top:4px;right:4px;background:#201e1d;color:#fff;border:0;width:26px;height:26px;cursor:pointer;font-size:12px;line-height:1';
+      x.onclick=function(ev){ ev.preventDefault(); delFlyer(f.id); };
+      cell.appendChild(a); cell.appendChild(x); wrap.appendChild(cell);
+    });
+  }catch(e){ sec.style.display='none'; }
+}
+async function delFlyer(id){
+  try{ await fetch('/api/flyer/'+encodeURIComponent(id)+'?token='+encodeURIComponent(TOKEN),{method:'DELETE'}); loadFlyers(); }catch(e){}
 }
 function downloadAiFlyer(){
   var el=document.getElementById('aiFlyerCard');
@@ -536,6 +578,7 @@ function ask(text){text=(text||"").trim();if(!text)return;document.getElementByI
   loadLibrary();
   loadGroups();
   loadForum();
+  loadFlyers();
 })();
 </script>
 <script>
