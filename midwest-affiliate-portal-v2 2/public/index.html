@@ -85,6 +85,11 @@
     .linkbar{flex-direction:row;align-items:stretch}.linkbar .lk{flex:1;display:flex;align-items:center}.linkbar .btn{width:auto;min-width:200px}
     .psearch{flex-direction:row}.psearch .btn{width:auto;min-width:150px}
     .composer{flex-direction:row}.composer .btn{width:auto;min-width:130px}}
+  .tabs{display:flex;border-bottom:2px solid var(--rule);margin:0 0 4px;position:sticky;top:0;background:var(--bg);z-index:30}
+  .tab{flex:1;background:none;border:0;border-bottom:3px solid transparent;padding:15px 6px;font-family:inherit;font-size:15px;font-weight:700;color:var(--muted);cursor:pointer;letter-spacing:-.01em;margin-bottom:-2px}
+  .tab.on{color:var(--brand);border-bottom-color:var(--brand)}
+  .panel{display:none}
+  .panel.on{display:block}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -96,22 +101,32 @@
     <span class="tag demo" id="modeTag" style="display:none">Demo</span>
   </div></header>
 
+  <nav class="tabs">
+    <button class="tab on" data-tab="home" onclick="showTab('home',this)">Home</button>
+    <button class="tab" data-tab="posts" onclick="showTab('posts',this)">Posts</button>
+    <button class="tab" data-tab="groups" onclick="showTab('groups',this)">Groups</button>
+    <button class="tab" data-tab="more" onclick="showTab('more',this)">More</button>
+  </nav>
+
+  <div class="panel on" id="panel-home">
   <div class="heroend">
     <div class="stats">
       <div class="card owed"><div class="lbl">Money waiting for you</div><div class="big" id="statOwed">$0.00</div></div>
       <div class="card"><div class="lbl">You've sold</div><div class="big" id="statSales">$0.00</div></div>
     </div>
-    <p class="say">That's yours — we send it to your <b>Venmo</b>. Want more? <b>Copy the wording below and paste it in a destash group.</b> That's it.</p>
+    <p class="say">That's yours — we send it to your <b>Venmo</b>. Want more? <b>Copy the wording in the Posts tab and paste it in a group.</b> That's it.</p>
   </div>
 
-  <div class="step">
+  <div class="step" style="border-bottom:none">
     <div class="stepno"><span>1</span><h2>Copy your link</h2></div>
     <p class="say">Anyone who buys after clicking <b>your</b> link earns you money.</p>
     <div class="linkbar"><div class="lk" id="myLink">…</div><button class="btn" onclick="copyLink()">Copy my link</button></div>
   </div>
+  </div>
 
+  <div class="panel" id="panel-posts">
   <div class="step">
-    <div class="stepno"><span>2</span><h2>Grab the wording</h2></div>
+    <div class="stepno"><span>1</span><h2>Grab the wording</h2></div>
     <p class="say">Every post below has the words <b>already written</b>. Hit "Copy caption" — that copies the wording <i>and</i> your link together.</p>
     <div class="lib"><div id="libItems" class="presults"><div class="muted">Loading…</div></div></div>
     <div class="promo">
@@ -124,8 +139,16 @@
     </div>
   </div>
 
-  <div class="step">
-    <div class="stepno"><span>3</span><h2>Paste it in a destash group</h2></div>
+  <div class="step" style="border-bottom:none">
+    <div class="stepno"><span>2</span><h2>Or print a flyer 🖨️</h2></div>
+    <p class="say">Makes a printable flyer with <b>your link</b> on it. Pin it up at games, gyms, work, church.</p>
+    <div style="margin-top:18px"><button class="btn" onclick="openFlyer()">Make my flyer →</button></div>
+  </div>
+  </div>
+
+  <div class="panel" id="panel-groups">
+  <div class="step" style="border-bottom:none">
+    <div class="stepno"><span>1</span><h2>Paste it in a destash group</h2></div>
     <p class="say">These are the groups that actually buy. Join one, paste what you copied, and you're done — that's the whole job.</p>
     <div class="lib">
       <div id="grpItems" class="presults"><div class="muted">Loading…</div></div>
@@ -139,15 +162,11 @@
       <div id="myGrpMsg" class="muted" style="margin-top:10px"></div>
     </div>
   </div>
-
-  <div class="step">
-    <div class="stepno"><span>4</span><h2>Or print a flyer 🖨️</h2></div>
-    <p class="say">Makes a printable flyer with <b>your link</b> on it. Pin it up at games, gyms, work, church.</p>
-    <div style="margin-top:18px"><button class="btn" onclick="openFlyer()">Make my flyer →</button></div>
   </div>
 
+  <div class="panel" id="panel-more">
   <div class="step">
-    <div class="stepno"><span>5</span><h2>Know a school or team?</h2></div>
+    <div class="stepno"><span>1</span><h2>Know a school or team?</h2></div>
     <p class="say">Send them our way — that's a second way to earn.</p>
     <div class="lib">
       <div class="litem">
@@ -163,7 +182,7 @@
   </div>
 
   <div class="step">
-    <div class="stepno"><span>6</span><h2>See what's working for others</h2></div>
+    <div class="stepno"><span>2</span><h2>See what's working for others</h2></div>
     <p class="say">Share a tip, or a win worth bragging about.</p>
     <div class="lib">
       <div class="psearch" style="margin-top:16px">
@@ -184,6 +203,7 @@
       <input id="input" placeholder="Type your question…" autocomplete="off" onkeydown="if(event.key==='Enter')ask(this.value)">
       <button class="btn" onclick="ask(document.getElementById('input').value)">Ask</button>
     </div>
+  </div>
   </div>
 
   <div class="footnote" id="foot">Loading…</div>
@@ -221,6 +241,7 @@
 </div>
 <script>
 const TOKEN = new URLSearchParams(location.search).get('token');
+function showTab(name,btn){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));if(btn)btn.classList.add('on');document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='panel-'+name));try{window.scrollTo(0,0);}catch(e){}}
 let LIVE=false;
 let ME={name:"Sarah",tag:"sarah",venmo:"sarah-midwest",rate:0.10,sales:482,orders:6,earned:48.2,paid:0,owed:48.2,link:"https://shopmidwesttees.com/?utm_source=sarah"};
 const history=[];
@@ -407,11 +428,11 @@ function ask(text){text=(text||"").trim();if(!text)return;document.getElementByI
 ["How much have I made?","What's my link?","When do I get paid?","How does this work?","How do I earn more?"]
   .forEach(q=>{const c=document.createElement('div');c.className='chip';c.textContent=q;c.onclick=()=>ask(q);document.getElementById('quick').appendChild(c);});
 (async function(){
-  if(TOKEN){try{const r=await fetch('/api/me?token='+encodeURIComponent(TOKEN));
+  if(!TOKEN){location.replace('/join');return;}
+  try{const r=await fetch('/api/me?token='+encodeURIComponent(TOKEN));
     if(r.ok){ME=await r.json();LIVE=true;
-      document.getElementById('modeTag').textContent='Live';document.getElementById('modeTag').className='tag live';
-      document.getElementById('foot').textContent='Your real earnings, straight from the store.';}}catch(e){}}
-  if(!LIVE)document.getElementById('foot').textContent='Demo mode — sample numbers. Open with your personal link to see your real earnings.';
+      document.getElementById('foot').textContent='Your real earnings, straight from the store.';}}catch(e){}
+  if(!LIVE){location.replace('/join');return;}
   render();
   renderMsm();
   loadLibrary();
