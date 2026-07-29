@@ -120,6 +120,28 @@ export async function deleteGroup(id) {
   return true;
 }
 
+/* ------------------------- Community forum ------------------------- */
+export async function listForum() {
+  const { data } = await db.from('mw_forum').select('*').order('created_at', { ascending: true });
+  const rows = data || [];
+  const posts = rows.filter(r => !r.parent_id).map(p => ({ ...p, replies: rows.filter(r => r.parent_id === p.id) }));
+  posts.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  return posts;
+}
+
+export async function createForumPost({ affiliateId, authorName, body, parentId }) {
+  const row = { affiliate_id: affiliateId || null, author_name: authorName || 'Affiliate', body, parent_id: parentId || null };
+  const { data, error } = await db.from('mw_forum').insert(row).select().single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function deleteForumPost(id) {
+  const { error } = await db.from('mw_forum').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
 // Upload a base64 data URL (or raw base64) to storage, return public URL.
 export async function uploadPostImage(base64, name) {
   let b64 = base64, contentType = 'image/jpeg';
