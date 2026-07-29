@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { salesForTag } from './lib/shopify.js';
 import * as store from './lib/db.js';
 import { askHelper } from './lib/ai.js';
+import { flyerCopy, flyerImage } from './lib/flyer.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const STORE_URL = process.env.STORE_URL || 'https://shopmidwesttees.com';
@@ -83,6 +84,20 @@ app.post('/api/ask', affiliateAuth, async (req, res) => {
     store.logChat({ affiliateId: req.aff.id, question, answer });
     res.json({ answer });
   } catch (e) { console.error(e); res.status(502).json({ error: 'My brain is napping — try again in a sec.' }); }
+});
+
+// AI flyer: Claude writes the copy, Google paints a text-free background image.
+app.post('/api/flyer-ai', affiliateAuth, async (req, res) => {
+  const theme = (req.body?.theme || '').toString().slice(0, 300).trim();
+  try {
+    const [copy, img] = await Promise.all([ flyerCopy(theme), flyerImage(theme) ]);
+    res.json({
+      headline: copy.headline,
+      subhead: copy.subhead,
+      image: img.image,
+      imageError: img.error || null,
+    });
+  } catch (e) { console.error(e); res.status(502).json({ error: 'Could not make a flyer right now — try again.' }); }
 });
 
 /* --------------------------- admin API ----------------------------- */
