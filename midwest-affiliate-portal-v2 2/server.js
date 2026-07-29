@@ -222,6 +222,30 @@ app.delete('/api/admin/groups/:id', adminAuth, async (req, res) => {
   catch (e) { console.error(e); res.status(500).json({ error: e.message }); }
 });
 
+/* ------------------------- Community forum ------------------------- */
+app.get('/api/forum', affiliateAuth, async (_req, res) => {
+  try { res.json({ posts: await store.listForum() }); }
+  catch (e) { console.error(e); res.status(502).json({ error: 'Could not load the community.' }); }
+});
+
+app.post('/api/forum', affiliateAuth, async (req, res) => {
+  const body = (req.body?.body || '').toString().trim().slice(0, 2000);
+  const parentId = req.body?.parentId || null;
+  if (!body) return res.status(400).json({ error: 'Write something first!' });
+  try { res.json({ post: await store.createForumPost({ affiliateId: req.aff.id, authorName: req.aff.name, body, parentId }) }); }
+  catch (e) { console.error(e); res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/admin/forum', adminAuth, async (_req, res) => {
+  try { res.json({ posts: await store.listForum() }); }
+  catch (e) { console.error(e); res.status(500).json({ error: 'Could not load community.' }); }
+});
+
+app.delete('/api/admin/forum/:id', adminAuth, async (req, res) => {
+  try { await store.deleteForumPost(req.params.id); res.json({ ok: true }); }
+  catch (e) { console.error(e); res.status(500).json({ error: e.message }); }
+});
+
 /* ------------------------- public signup ------------------------- */
 // Anyone can join and instantly get their own referral link.
 app.post('/api/signup', async (req, res) => {
