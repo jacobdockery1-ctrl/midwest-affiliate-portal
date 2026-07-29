@@ -5,61 +5,86 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MidWest Tees — Affiliate Portal</title>
 <style>
-  :root{--bg:#0f1115;--panel:#171a21;--panel2:#1e222b;--line:#2a2f3a;--text:#f2f4f8;--muted:#9aa4b2;
-    --brand:#5b8cff;--good:#39d98a;--warn:#ffb020;--bubble-you:#26466e;--radius:16px}
-  *{box-sizing:border-box}html,body{margin:0;height:100%}
-  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;display:flex;justify-content:center}
-  .app{width:100%;max-width:520px;min-height:100vh;display:flex;flex-direction:column}
-  header{padding:18px 20px 14px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#1a1e27,#12151c);position:sticky;top:0;z-index:5}
-  .brandrow{display:flex;align-items:center;gap:10px}
-  .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--brand),#8a5bff);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
-  h1{font-size:16px;margin:0}.sub{color:var(--muted);font-size:12px;margin-top:2px}
-  .tag{margin-left:auto;font-size:10px;font-weight:700;padding:4px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.5px}
-  .tag.demo{background:#3a2a10;color:var(--warn);border:1px solid #4d3a17}
-  .tag.live{background:#0f3324;color:var(--good);border:1px solid #17513a}
-  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 20px 6px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
-  .card .big{font-size:26px;font-weight:800;margin-top:2px}
-  .card .lbl{color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-  .card.owed .big{color:var(--good)}
-  .linkbar{margin:10px 20px 4px;background:var(--panel2);border:1px dashed var(--line);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px}
-  .linkbar .lk{flex:1;font-size:13px;color:#bcd2ff;word-break:break-all}
-  .btn{background:var(--brand);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-weight:700;font-size:13px;cursor:pointer}.btn:active{transform:translateY(1px)}
-  .chat{flex:1;overflow-y:auto;padding:14px 16px 8px;display:flex;flex-direction:column;gap:12px}
-  .msg{max-width:88%;padding:12px 14px;border-radius:16px;font-size:15px;line-height:1.5}
-  .bot{background:var(--panel);border:1px solid var(--line);border-top-left-radius:5px;align-self:flex-start}
-  .you{background:var(--bubble-you);border-top-right-radius:5px;align-self:flex-end}
-  .bot .lead{font-size:19px;font-weight:800;margin-bottom:4px;display:block}
+  :root{--bg:#f3f2f2;--panel:#fff;--panel2:#eceae9;--line:#d6d3d1;--rule:#201e1d;--text:#201e1d;--muted:#6b6866;
+    --brand:#ec3013;--brand-dk:#c1250c;--tint:#fdeae7;--good:#166534;--warn:#7a5410;--bubble-you:#fdeae7;--radius:0}
+  *{box-sizing:border-box}html,body{margin:0}
+  body{background:var(--bg);color:var(--text);font-family:Archivo,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;display:flex;justify-content:center;-webkit-font-smoothing:antialiased}
+  .app{width:100%;max-width:560px;min-height:100vh;display:flex;flex-direction:column;padding:0 20px}
+  header{padding:22px 0 16px;background:var(--bg);border-bottom:2px solid var(--rule)}
+  .brandrow{display:flex;align-items:center;gap:12px}
+  .logo{width:38px;height:38px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex:none;letter-spacing:-.02em}
+  h1{font-size:15px;margin:0;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+  .sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .tag{margin-left:auto;font-size:10px;font-weight:700;padding:5px 9px;text-transform:uppercase;letter-spacing:.08em;border:2px solid var(--brand);color:var(--brand-dk);background:var(--bg);flex:none}
+  .tag.demo{border-color:var(--brand);color:var(--brand-dk)}
+  .tag.live{border-color:var(--good);color:var(--good)}
+  .stats{display:block;padding:32px 0 0}
+  .card{padding:0;background:none;border:none}
+  .card .lbl{color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.09em}
+  .card.owed .big{font-size:clamp(52px,17vw,78px);font-weight:700;letter-spacing:-.04em;line-height:.95;color:var(--brand);margin-top:6px}
+  .card.owed{margin-bottom:20px}
+  .card:not(.owed){display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:16px}
+  .card:not(.owed) .big{font-size:20px;font-weight:700;letter-spacing:-.02em;order:2}
+  .card:not(.owed) .lbl{order:1;text-transform:none;letter-spacing:0;font-size:15px;font-weight:400;color:var(--text)}
+  .say{font-size:16px;line-height:1.5;color:#3d3a38;margin:10px 0 0}
+  .say b{color:var(--brand-dk)}
+  .heroend{padding-bottom:28px;border-bottom:2px solid var(--rule)}
+  .step{padding:26px 0;border-bottom:2px solid var(--rule)}
+  .stepno{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+  .stepno span{width:30px;height:30px;background:var(--rule);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+  .stepno h2{font-size:23px;margin:0;font-weight:700;letter-spacing:-.025em;line-height:1.15}
+  .linkbar{display:flex;flex-direction:column;gap:12px;margin-top:16px;background:none;border:none;padding:0}
+  .linkbar .lk{font-size:15px;font-weight:500;word-break:break-all;border:2px solid var(--rule);background:var(--panel);padding:16px;color:var(--text)}
+  .btn{background:var(--brand);color:#fff;border:none;border-radius:0;padding:17px 18px;font-weight:700;font-size:17px;cursor:pointer;min-height:58px;font-family:inherit;letter-spacing:-.01em;text-align:left;width:100%}
+  .btn:hover{background:var(--brand-dk)}
+  .btn:active{transform:translateY(1px)}
+  .btn:focus-visible{outline:2px solid var(--rule);outline-offset:2px}
+  .btn.ghost{background:var(--panel);border:2px solid var(--rule);color:var(--text);text-decoration:none;display:block}
+  .btn.ghost:hover{background:var(--tint)}
+  .btn.sm{padding:12px 14px;font-size:14px;min-height:48px;width:auto;white-space:nowrap;display:inline-flex;align-items:center}
+  .promo,.lib{padding:0}
+  .promo-hd{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin:22px 0 12px}
+  .psearch{display:flex;flex-direction:column;gap:12px}
+  .psearch input{background:var(--panel);border:2px solid var(--rule);border-radius:0;padding:16px;color:var(--text);font-size:17px;outline:none;min-height:58px;font-family:inherit;width:100%}
+  .psearch input:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+  .presults{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+  .prow{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:0;padding:14px;flex-wrap:wrap}
+  .prow img{width:50px;height:50px;border-radius:0;object-fit:cover;background:var(--panel2);flex:none}
+  .prow .pt{flex:1;min-width:120px;font-size:15px;line-height:1.35;font-weight:500}
+  .muted{color:var(--muted);font-size:15px;line-height:1.5}
+  .litem{background:var(--panel);border:1px solid var(--line);border-radius:0;padding:16px;margin-bottom:12px}
+  .litem .top{display:flex;gap:14px;align-items:flex-start}
+  .litem img{width:68px;height:68px;border-radius:0;object-fit:cover;background:var(--panel2);flex:none;border:1px solid var(--line)}
+  .litem .tt{font-weight:700;font-size:17px;line-height:1.25;letter-spacing:-.01em}
+  .litem .pr{color:var(--brand-dk);font-weight:700;font-size:14px;margin-top:4px}
+  .litem .ds{color:var(--muted);font-size:15px;margin-top:6px;line-height:1.5}
+  .litem .ds b{color:var(--brand-dk)}
+  .litem .tp{background:var(--panel2);border:none;border-left:4px solid var(--brand);border-radius:0;padding:16px;font-size:17px;margin-top:14px;white-space:pre-wrap;line-height:1.55;word-break:break-word;font-weight:500;color:var(--text)}
+  .litem .tp::before{content:"Copy this wording";display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--brand-dk);margin-bottom:8px}
+  #msmLink::before,#forumFeed .tp::before{content:none}
+  #forumFeed .tp{font-size:15px;font-weight:400;border-left-color:var(--line)}
+  #msmLink{font-size:15px;font-weight:500}
+  .litem .acts{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center}
+  .chat{padding:16px 0 6px;display:flex;flex-direction:column}
+  .msg{padding:15px 0;font-size:16px;line-height:1.55;border-top:1px solid var(--line);max-width:100%;background:none;border-radius:0}
+  .msg:first-child{border-top:none}
+  .bot{color:var(--text);border:none;border-top:1px solid var(--line)}
+  .you{color:var(--brand-dk);font-weight:600;background:none}
+  .bot .lead{font-size:21px;font-weight:700;margin-bottom:6px;display:block;letter-spacing:-.02em}
   .dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted);margin:0 2px;animation:b 1s infinite}
   .dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
   @keyframes b{0%,60%,100%{opacity:.3}30%{opacity:1}}
-  .quick{display:flex;gap:8px;overflow-x:auto;padding:8px 16px;border-top:1px solid var(--line);background:#12151c}
-  .chip{white-space:nowrap;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:9px 13px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer}
-  .composer{display:flex;gap:8px;padding:12px 16px 18px;border-top:1px solid var(--line);background:#12151c;position:sticky;bottom:0}
-  .composer input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;color:var(--text);font-size:15px;outline:none}
-  .composer input:focus{border-color:var(--brand)}
-  .footnote{color:var(--muted);font-size:11px;text-align:center;padding:0 20px 14px}
-  .promo{margin:12px 20px 4px}
-  .promo-hd{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
-  .psearch{display:flex;gap:8px}
-  .psearch input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px 13px;color:var(--text);font-size:15px;outline:none}
-  .psearch input:focus{border-color:var(--brand)}
-  .presults{display:flex;flex-direction:column;gap:8px;margin-top:10px}
-  .prow{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
-  .prow img{width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--panel2);flex:none}
-  .prow .pt{flex:1;font-size:14px;line-height:1.3}
-  .btn.sm{padding:8px 11px;font-size:12px;white-space:nowrap}
-  .muted{color:var(--muted);font-size:13px}
-  .lib{margin:14px 20px 4px}
-  .litem{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
-  .litem .top{display:flex;gap:10px;align-items:flex-start}
-  .litem img{width:64px;height:64px;border-radius:8px;object-fit:cover;background:var(--panel2);flex:none}
-  .litem .tt{font-weight:700;font-size:15px;line-height:1.25}
-  .litem .pr{color:var(--good);font-weight:700;font-size:13px;margin-top:2px}
-  .litem .ds{color:var(--muted);font-size:13px;margin-top:4px}
-  .litem .tp{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px;font-size:13px;margin-top:8px;white-space:pre-wrap;line-height:1.4}
-  .litem .acts{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
-  .btn.ghost{background:var(--panel2);border:1px solid var(--line);color:var(--text);text-decoration:none;display:inline-block}
+  .quick{display:flex;gap:10px;overflow-x:auto;padding:14px 0;background:var(--bg);border:none}
+  .chip{white-space:nowrap;background:var(--panel);border:2px solid var(--rule);border-radius:0;color:var(--text);padding:13px 15px;font-size:15px;font-weight:600;cursor:pointer;min-height:48px;font-family:inherit}
+  .chip:hover{background:var(--tint)}
+  .composer{display:flex;flex-direction:column;gap:12px;padding:0 0 22px;background:var(--bg);border:none;position:static}
+  .composer input{background:var(--panel);border:2px solid var(--rule);border-radius:0;padding:16px;color:var(--text);font-size:17px;outline:none;min-height:58px;font-family:inherit;width:100%}
+  .composer input:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+  .footnote{color:var(--muted);font-size:13px;padding:16px 0 30px;line-height:1.5;border-top:2px solid var(--rule);text-align:left}
+  @media(min-width:600px){.app{max-width:660px;padding:0 32px}
+    .linkbar{flex-direction:row;align-items:stretch}.linkbar .lk{flex:1;display:flex;align-items:center}.linkbar .btn{width:auto;min-width:200px}
+    .psearch{flex-direction:row}.psearch .btn{width:auto;min-width:150px}
+    .composer{flex-direction:row}.composer .btn{width:auto;min-width:130px}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -70,92 +95,127 @@
     <div><h1>MidWest Tees — Affiliate Portal</h1><div class="sub">Hey <span id="affName">there</span> 👋 welcome back</div></div>
     <span class="tag demo" id="modeTag">Demo</span>
   </div></header>
-  <div class="stats">
-    <div class="card owed"><div class="lbl">Owed to you</div><div class="big" id="statOwed">$0.00</div></div>
-    <div class="card"><div class="lbl">Sales you drove</div><div class="big" id="statSales">$0.00</div></div>
-  </div>
-  <div class="linkbar"><div class="lk" id="myLink">…</div><button class="btn" onclick="copyLink()">Copy</button></div>
-  <div class="promo">
-    <div class="promo-hd">Promote a specific product</div>
-    <div class="psearch">
-      <input id="pq" placeholder="Search a product to share…" autocomplete="off" onkeydown="if(event.key==='Enter')searchProducts(this.value)">
-      <button class="btn" onclick="searchProducts(document.getElementById('pq').value)">Search</button>
+
+  <div class="heroend">
+    <div class="stats">
+      <div class="card owed"><div class="lbl">Money waiting for you</div><div class="big" id="statOwed">$0.00</div></div>
+      <div class="card"><div class="lbl">You've sold</div><div class="big" id="statSales">$0.00</div></div>
     </div>
-    <div id="prodResults" class="presults"></div>
+    <p class="say">That's yours — we send it to your <b>Venmo</b>. Want more? <b>Copy the wording below and paste it in a destash group.</b> That's it.</p>
   </div>
-  <div class="lib">
-    <div class="promo-hd">Ready to post — pull &amp; share</div>
-    <div id="libItems" class="presults"><div class="muted">Loading…</div></div>
+
+  <div class="step">
+    <div class="stepno"><span>1</span><h2>Copy your link</h2></div>
+    <p class="say">Anyone who buys after clicking <b>your</b> link earns you money.</p>
+    <div class="linkbar"><div class="lk" id="myLink">…</div><button class="btn" onclick="copyLink()">Copy my link</button></div>
   </div>
-    <div class="lib">
-    <div class="promo-hd">Groups to join &amp; post in</div>
-    <div id="grpItems" class="presults"><div class="muted">Loading…</div></div>
-  </div>
-    <div class="lib">
-    <div class="promo-hd">Earn more — refer schools &amp; teams (MSM Market)</div>
-    <div class="litem">
-      <div class="tt">Know a school, team, or club? 🏫</div>
-      <div class="ds">Refer them → we build their spirit store <b>free</b> → you earn <b>10% of everything it sells</b>, for as long as it's live. Just introductions, no selling.</div>
-      <div class="tp" id="msmLink">…</div>
-      <div class="acts">
-        <button class="btn sm" onclick="copyText(document.getElementById('msmLink').textContent)">Copy my MSM link</button>
-        <button class="btn sm ghost" id="msmMsgBtn">Copy message</button>
+
+  <div class="step">
+    <div class="stepno"><span>2</span><h2>Grab the wording</h2></div>
+    <p class="say">Every post below has the words <b>already written</b>. Hit "Copy caption" — that copies the wording <i>and</i> your link together.</p>
+    <div class="lib"><div id="libItems" class="presults"><div class="muted">Loading…</div></div></div>
+    <div class="promo">
+      <div class="promo-hd">Looking for one thing in particular?</div>
+      <div class="psearch">
+        <input id="pq" placeholder="Type a shirt, hat, color…" autocomplete="off" onkeydown="if(event.key==='Enter')searchProducts(this.value)">
+        <button class="btn" onclick="searchProducts(document.getElementById('pq').value)">Search</button>
       </div>
+      <div id="prodResults" class="presults"></div>
     </div>
   </div>
+
+  <div class="step">
+    <div class="stepno"><span>3</span><h2>Paste it in a destash group</h2></div>
+    <p class="say">These are the groups that actually buy. Join one, paste what you copied, and you're done — that's the whole job.</p>
     <div class="lib">
-    <div class="promo-hd">Community — tips &amp; wins</div>
-    <div class="psearch">
-      <input id="fPost" placeholder="Share a tip or a win…" autocomplete="off" onkeydown="if(event.key==='Enter')postForum()">
-      <button class="btn" onclick="postForum()">Post</button>
-    </div>
-    <div id="forumFeed" class="presults" style="margin-top:10px"><div class="muted">Loading…</div></div>
-  </div>
-    <div class="lib">
-    <div class="promo-hd">Make a flyer</div>
-    <div class="litem">
-      <div class="tt">Print &amp; post a flyer 🖨️</div>
-      <div class="ds">Generate a flyer with your QR code — great for game days, gym boards &amp; group chats. Feature a product or just your store.</div>
-      <div class="acts"><button class="btn sm" onclick="openFlyer()">Make a flyer</button></div>
-    </div>
-  </div>
-  <div class="chat" id="chat">
-    <div class="msg bot"><span class="lead">Ask me anything about your affiliate account! 😊</span>Type a question or tap a button. I keep answers nice and simple.</div>
-  </div>
-  <div class="quick" id="quick"></div>
-  <div class="composer">
-    <input id="input" placeholder="Type your question…" autocomplete="off" onkeydown="if(event.key==='Enter')ask(this.value)">
-    <button class="btn" onclick="ask(document.getElementById('input').value)">Ask</button>
-  </div>
-  <div class="footnote" id="foot">Loading…</div>
-</div>
-<div id="flyerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:60;overflow:auto;padding:16px">
-  <div style="max-width:460px;margin:0 auto">
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <input id="flyerQ" placeholder="Feature a product (optional)…" autocomplete="off" style="flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text);font-size:14px;outline:none" onkeydown="if(event.key==='Enter')flyerSearch(this.value)">
-      <button class="btn" onclick="flyerSearch(document.getElementById('flyerQ').value)">Search</button>
-    </div>
-    <div id="flyerPicks" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
-    <div id="flyerCard" style="background:#fff;color:#111;border-radius:14px;overflow:hidden;position:relative">
-      <div style="background:linear-gradient(135deg,#5b8cff,#8a5bff);color:#fff;padding:18px 20px">
-        <div style="font-weight:800;font-size:22px;letter-spacing:.5px">MIDWEST TEES</div>
-        <div id="flyerHead" style="font-size:15px;opacity:.95;margin-top:2px">Shop our gear today</div>
+      <div id="grpItems" class="presults"><div class="muted">Loading…</div></div>
+      <div class="promo-hd">In a group we don't have yet? Add it</div>
+      <p class="say" style="margin-bottom:14px">Drop in any destash or spirit-wear group you're already in, so everybody can post there too.</p>
+      <div class="psearch">
+        <input id="myGrpName" placeholder="Group name" autocomplete="off">
+        <input id="myGrpUrl" placeholder="Paste the Facebook link" autocomplete="off">
+        <button class="btn" id="myGrpAdd">Add this group</button>
       </div>
-      <img id="flyerImg" style="width:100%;max-height:300px;object-fit:cover;display:none">
-      <div style="padding:18px 20px">
-        <div id="flyerTitle" style="font-size:20px;font-weight:800">MidWest Tees</div>
-        <div style="margin-top:14px">
-          <div style="font-weight:800;font-size:18px">Shop now 🛍️</div>
-          <div style="font-size:15px;color:#1a7f4b;font-weight:700;margin-top:2px" id="flyerDomain">shopmidwesttees.com</div>
-          <div style="font-size:12px;color:#555;margin-top:6px;word-break:break-all" id="flyerLink"></div>
+      <div id="myGrpMsg" class="muted" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="stepno"><span>4</span><h2>Or print a flyer 🖨️</h2></div>
+    <p class="say">Makes a printable flyer with <b>your link</b> on it. Pin it up at games, gyms, work, church.</p>
+    <div style="margin-top:18px"><button class="btn" onclick="openFlyer()">Make my flyer →</button></div>
+  </div>
+
+  <div class="step">
+    <div class="stepno"><span>5</span><h2>Know a school or team?</h2></div>
+    <p class="say">Send them our way — that's a second way to earn.</p>
+    <div class="lib">
+      <div class="litem">
+        <div class="tt">Know a school, team, or club? 🏫</div>
+        <div class="ds">Refer them → we build their spirit store <b>free</b> → you earn <b>10% of everything it sells</b>, for as long as it's live. Just introductions, no selling.</div>
+        <div class="tp" id="msmLink">…</div>
+        <div class="acts">
+          <button class="btn sm" onclick="copyText(document.getElementById('msmLink').textContent)">Copy my MSM link</button>
+          <button class="btn sm ghost" id="msmMsgBtn">Copy message</button>
         </div>
       </div>
-      <div style="background:#f2f4f8;color:#666;font-size:11px;text-align:center;padding:8px" id="flyerBy">Shared by a MidWest Tees affiliate</div>
     </div>
-    <div style="display:flex;gap:8px;margin-top:12px">
+  </div>
+
+  <div class="step">
+    <div class="stepno"><span>6</span><h2>See what's working for others</h2></div>
+    <p class="say">Share a tip, or a win worth bragging about.</p>
+    <div class="lib">
+      <div class="psearch" style="margin-top:16px">
+        <input id="fPost" placeholder="Share a tip or a win…" autocomplete="off" onkeydown="if(event.key==='Enter')postForum()">
+        <button class="btn" onclick="postForum()">Post</button>
+      </div>
+      <div id="forumFeed" class="presults"><div class="muted">Loading…</div></div>
+    </div>
+  </div>
+
+  <div class="step" style="border-bottom:none">
+    <div class="stepno"><span>?</span><h2>Not sure about something?</h2></div>
+    <div class="chat" id="chat">
+      <div class="msg bot"><span class="lead">Ask me anything about your affiliate account! 😊</span>Type a question or tap a button. I keep answers nice and simple.</div>
+    </div>
+    <div class="quick" id="quick"></div>
+    <div class="composer">
+      <input id="input" placeholder="Type your question…" autocomplete="off" onkeydown="if(event.key==='Enter')ask(this.value)">
+      <button class="btn" onclick="ask(document.getElementById('input').value)">Ask</button>
+    </div>
+  </div>
+
+  <div class="footnote" id="foot">Loading…</div>
+</div>
+
+<div id="flyerModal" style="display:none;position:fixed;inset:0;background:rgba(32,30,29,.75);z-index:60;overflow:auto;padding:16px">
+  <div style="max-width:480px;margin:0 auto">
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px">
+      <input id="flyerQ" placeholder="Feature a product (optional)…" autocomplete="off" style="background:#fff;border:2px solid #201e1d;border-radius:0;padding:14px;color:#201e1d;font-size:16px;outline:none;min-height:52px;font-family:inherit;width:100%" onkeydown="if(event.key==='Enter')flyerSearch(this.value)">
+      <button class="btn" onclick="flyerSearch(document.getElementById('flyerQ').value)">Search</button>
+    </div>
+    <div id="flyerPicks" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+    <div id="flyerCard" style="background:#fff;color:#201e1d;border-radius:0;overflow:hidden;position:relative;border:2px solid #201e1d">
+      <div style="background:#ec3013;color:#fff;padding:22px 22px 20px">
+        <div style="font-weight:700;font-size:26px;letter-spacing:-.02em">MIDWEST TEES</div>
+        <div id="flyerHead" style="font-size:16px;opacity:.95;margin-top:4px">Shop our gear today</div>
+      </div>
+      <img id="flyerImg" style="width:100%;max-height:300px;object-fit:cover;display:none;filter:grayscale(1)">
+      <div style="padding:22px">
+        <div id="flyerTitle" style="font-size:22px;font-weight:700;letter-spacing:-.02em">MidWest Tees</div>
+        <div style="margin-top:18px;border-top:2px solid #201e1d;padding-top:16px">
+          <div style="font-weight:700;font-size:20px;letter-spacing:-.02em">Shop now 🛍️</div>
+          <div style="font-size:20px;color:#c1250c;font-weight:700;margin-top:6px;letter-spacing:-.01em" id="flyerDomain">shopmidwesttees.com</div>
+          <div style="font-size:12px;color:#6b6866;margin-top:8px;word-break:break-all" id="flyerLink"></div>
+        </div>
+      </div>
+      <div style="background:#eceae9;color:#6b6866;font-size:11px;text-align:left;padding:12px 22px;letter-spacing:.06em;text-transform:uppercase;font-weight:700" id="flyerBy">Shared by a MidWest Tees affiliate</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
       <button class="btn" onclick="downloadFlyer()">Download PNG</button>
       <button class="btn ghost" onclick="printFlyer()">Print</button>
-      <button class="btn ghost" onclick="closeFlyer()" style="margin-left:auto">Close</button>
+      <button class="btn ghost" onclick="closeFlyer()">Close</button>
     </div>
   </div>
 </div>
@@ -357,6 +417,98 @@ function ask(text){text=(text||"").trim();if(!text)return;document.getElementByI
   loadLibrary();
   loadGroups();
   loadForum();
+})();
+</script>
+<script>
+/* Demo seed — only runs when there's no live token, so affiliates always see
+   what the portal looks like full. Live data always wins. */
+(function(){
+  const fbSearch = q => 'https://www.facebook.com/search/groups/?q=' + encodeURIComponent(q);
+  const GROUPS = [
+    {name:'Midwest Tee Destash & Deals', description:'Biggest one — post here first. Deals and destash all day.', url:fbSearch('midwest tee destash')},
+    {name:'Iowa / Nebraska Spirit Wear Swap', description:'School and team gear. Game-day posts do great here.', url:fbSearch('spirit wear swap')},
+    {name:'Mom Deal Finders — Midwest', description:'Very active. Post a picture with the wording and let it ride.', url:fbSearch('midwest mom deals')}
+  ];
+  const ITEMS = [
+    {title:'Heartland Heavyweight Tee', price:'$32.00', description:'Midweight cotton, unisex fit. Best seller.',
+     talking_points:"Okay these are SO soft 😍 Midwest Tees has the heavyweight tee back in stock — true to size, holds up in the wash. Comment your size and I'll send you the link 👇"},
+    {title:'MSM Market Crewneck', price:'$48.00', description:'Fleece-lined crew in cream and forest.',
+     talking_points:"Game day just got easier 🏈 Fleece-lined crewneck, cream or forest. I sized up one and it's perfect. Link below 👇"},
+    {title:'Rural Route Cap', price:'$26.00', description:'Structured six-panel, embroidered patch.',
+     talking_points:"Grabbed three of these for the family 🧢 Adjustable strap so it fits everybody. Grab yours here 👇"}
+  ];
+  const POSTS = [
+    {author_name:'Megan R.', body:'Posted the crewneck wording in two destash groups last night — 4 orders by lunch. Game days are gold.'},
+    {author_name:'Tasha B.', body:'Tip: paste the caption FIRST, then add the photo. Groups bury text-only posts.',
+     replies:[{author_name:'Dana K.', body:'Tried this, way more comments. Thank you!'}]}
+  ];
+
+  function itemEl(it){
+    const el=document.createElement('div');el.className='litem';
+    const price=it.price?('<div class="pr">'+escHtml(it.price)+'</div>'):'';
+    const desc=it.description?('<div class="ds">'+escHtml(it.description)+'</div>'):'';
+    el.innerHTML='<div class="top"><div><div class="tt">'+escHtml(it.title)+'</div>'+price+desc+'</div></div>'+
+      '<div class="tp">'+escHtml(it.talking_points)+'</div>';
+    const acts=document.createElement('div');acts.className='acts';
+    const b1=document.createElement('button');b1.className='btn sm';b1.textContent='Copy caption';
+    b1.onclick=()=>copyText(it.talking_points+'\n\n'+ME.link);acts.appendChild(b1);
+    const b2=document.createElement('button');b2.className='btn sm ghost';b2.textContent='Copy my link';
+    b2.onclick=()=>copyText(ME.link);acts.appendChild(b2);
+    el.appendChild(acts);return el;
+  }
+  function groupEl(g){
+    const el=document.createElement('div');el.className='litem';
+    el.innerHTML='<div class="tt">'+escHtml(g.name)+'</div><div class="ds">'+escHtml(g.description)+'</div>';
+    const acts=document.createElement('div');acts.className='acts';
+    const a=document.createElement('a');a.className='btn sm';a.textContent='Find this group →';a.href=g.url;a.target='_blank';a.rel='noopener';acts.appendChild(a);
+    el.appendChild(acts);return el;
+  }
+  function postEl(p){
+    const el=document.createElement('div');el.className='litem';
+    let html='<div class="tt">'+escHtml(p.author_name)+'</div><div class="ds">'+escHtml(p.body)+'</div>';
+    (p.replies||[]).forEach(r=>{html+='<div class="tp"><b>'+escHtml(r.author_name)+':</b> '+escHtml(r.body)+'</div>';});
+    el.innerHTML=html;return el;
+  }
+  function fill(id,rows,make,note){
+    const w=document.getElementById(id);if(!w)return;
+    w.innerHTML='';
+    if(note){const n=document.createElement('div');n.className='muted';
+      n.style.cssText='background:#fdeae7;border-left:4px solid #ec3013;padding:12px 14px;font-size:14px';
+      n.innerHTML=note;w.appendChild(n);}
+    rows.forEach(r=>w.appendChild(make(r)));
+  }
+  // affiliates can submit their own groups
+  const addBtn=document.getElementById('myGrpAdd');
+  if(addBtn){
+    const nameI=document.getElementById('myGrpName'), urlI=document.getElementById('myGrpUrl'), msg=document.getElementById('myGrpMsg');
+    const submit=async function(){
+      const name=(nameI.value||'').trim(), url=(urlI.value||'').trim();
+      if(!name||!url){msg.textContent='Add both the group name and the link.';return;}
+      if(!/^https?:\/\//i.test(url)){msg.textContent='That link needs to start with https://';return;}
+      addBtn.disabled=true;addBtn.textContent='Adding…';
+      const done=t=>{msg.textContent=t;nameI.value='';urlI.value='';addBtn.disabled=false;addBtn.textContent='Add this group';};
+      if(typeof LIVE!=='undefined'&&LIVE){
+        try{
+          await fetch('/api/groups',{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({token:TOKEN,name:name,url:url,description:'Added by '+(ME.name||'an affiliate')})});
+          if(typeof loadGroups==='function')loadGroups();
+          done('Added — thanks! Everybody can see it now.');
+        }catch(e){msg.textContent='Could not save it — try again in a sec.';addBtn.disabled=false;addBtn.textContent='Add this group';}
+      }else{
+        const w=document.getElementById('grpItems');
+        if(w)w.appendChild(groupEl({name:name,description:'Added by you',url:url}));
+        done('Added below. On your real portal link this saves for everyone.');
+      }
+    };
+    addBtn.onclick=submit;
+    [nameI,urlI].forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter')submit();}));
+  }
+  setTimeout(function(){
+    if(typeof LIVE!=='undefined'&&LIVE)return;
+    fill('libItems',ITEMS,itemEl,'<b>Sample posts</b> — your real ones load when you open your own portal link.');
+    fill('grpItems',GROUPS,groupEl,'<b>Example groups</b> — your admin adds the real ones.');
+    fill('forumFeed',POSTS,postEl,null);
+  },300);
 })();
 </script>
 </body>
