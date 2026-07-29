@@ -3,7 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const COPY_MODEL = process.env.AI_MODEL || 'claude-3-5-haiku-latest';
-const IMG_MODEL = process.env.GOOGLE_IMAGE_MODEL || 'gemini-2.5-flash-image';
+const IMG_MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image';
 
 // Claude writes a punchy headline + subhead for the flyer.
 export async function flyerCopy(theme) {
@@ -26,20 +26,20 @@ export async function flyerCopy(theme) {
   }
 }
 
-// Google Gemini paints a text-free flyer background from the theme.
+// Google Gemini ("Nano Banana", gemini-2.5-flash-image) paints a text-free
+// flyer image from the theme. Same call shape/key as the MSM Market platform.
 export async function flyerImage(theme) {
-  const key = process.env.GOOGLE_API_KEY;
+  const key = process.env.GEMINI_API_KEY;
   if (!key) return { image: null, error: 'no_key' };
   const t = (theme || '').toString().slice(0, 300).trim();
-  const prompt = `A clean, eye-catching promotional flyer background for a Midwest custom T-shirt and spirit-wear brand. Theme: ${t || 'casual everyday tees'}. Bold, modern, warm, poster-like, high quality. Leave generous empty space near the top and bottom for text to be added later. IMPORTANT: do not render any words, letters, or logos in the image.`;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${IMG_MODEL}:generateContent?key=${encodeURIComponent(key)}`;
+  const prompt = `A clean, eye-catching promotional flyer background for a Midwest custom T-shirt and spirit-wear brand (shopmidwesttees.com). Theme: ${t || 'casual everyday tees'}. Bold, modern, warm, poster-like, high quality, print-ready. Leave generous clean space near the top and bottom so text can be added on top later. ABSOLUTELY NO text, letters, words, logos, QR codes, or empty placeholder boxes anywhere in the image — a finished, filled designed background only.`;
   try {
-    const r = await fetch(url, {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${IMG_MODEL}:generateContent`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+        generationConfig: { responseModalities: ['IMAGE'] },
       }),
     });
     if (!r.ok) {
@@ -49,9 +49,14 @@ export async function flyerImage(theme) {
     }
     const j = await r.json();
     const parts = j?.candidates?.[0]?.content?.parts || [];
-    const img = parts.find(p => p.inlineData?.data);
-    if (!img) return { image: null, error: 'no_image' };
-    return { image: `data:${img.inlineData.mimeType || 'image/png'};base64,${img.inlineData.data}`, error: null };
+    for (const p of parts) {
+      const inline = p.inline_data || p.inlineData;
+      if (inline?.data) {
+        const mime = (p.inline_data?.mime_type) || (p.inlineData?.mimeType) || 'image/png';
+        return { image: `data:${mime};base64,${inline.data}`, error: null };
+      }
+    }
+    return { image: null, error: 'no_image' };
   } catch (e) {
     console.error('flyerImage error', e);
     return { image: null, error: 'exception' };
