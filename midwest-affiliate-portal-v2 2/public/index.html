@@ -144,8 +144,9 @@
   <div class="panel" id="panel-flyer">
   <div class="step" style="border-bottom:none">
     <div class="stepno"><span>✨</span><h2>Make an AI flyer</h2></div>
-    <p class="say">Type what it's for — a game, a sale, back-to-school — and AI makes you a flyer with <b>your link</b> on it. Print it or post it.</p>
-    <input id="aiTheme" placeholder="e.g. Friday night football game" autocomplete="off" onkeydown="if(event.key==='Enter')genFlyer()" style="width:100%;background:#fff;border:2px solid #201e1d;border-radius:0;padding:14px;color:#201e1d;font-size:16px;outline:none;min-height:52px;font-family:inherit;margin-top:16px">
+    <p class="say">Add your shirt, type the words you want on it, and AI builds the flyer image — your text and link go right on top. Print it or post it.</p>
+    <div class="promo-hd" style="margin-top:16px">What should the flyer say?</div>
+    <input id="aiTheme" placeholder="e.g. FRIDAY NIGHT LIGHTS — ORDER BY AUG 1" autocomplete="off" oninput="updateFlyerText()" onkeydown="if(event.key==='Enter')genFlyer()" style="width:100%;background:#fff;border:2px solid #201e1d;border-radius:0;padding:14px;color:#201e1d;font-size:16px;outline:none;min-height:52px;font-family:inherit;margin-top:8px">
     <div style="margin-top:16px">
       <div class="promo-hd">Feature your shirts (pick up to 3 — optional)</div>
       <p class="say" style="margin-bottom:10px">Search your store and add real products — the flyer uses those exact shirts.</p>
@@ -159,20 +160,14 @@
     <button class="btn" id="genBtn" onclick="genFlyer()" style="margin-top:16px;width:100%">Generate flyer ✨</button>
     <div id="aiFlyerMsg" class="muted" style="margin-top:12px"></div>
     <div id="aiFlyerWrap" style="margin-top:18px;display:none">
-      <div id="aiFlyerCard" style="background:#fff;color:#201e1d;border:2px solid #201e1d;overflow:hidden;position:relative">
-        <div style="background:#ec3013">
-          <img id="aiFlyerImg" style="width:100%;max-height:360px;object-fit:cover;display:none">
-          <div style="padding:22px">
-            <div id="aiFlyerHeadline" style="color:#fff;font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.05;text-shadow:0 2px 12px rgba(0,0,0,.35)">SHOP MIDWEST TEES</div>
-            <div id="aiFlyerSub" style="color:#fff;font-size:15px;margin-top:6px;text-shadow:0 1px 8px rgba(0,0,0,.35)">Custom tees &amp; spirit-wear</div>
-          </div>
+      <div id="aiFlyerCard" style="position:relative;border:2px solid #201e1d;overflow:hidden;background:#ec3013">
+        <img id="aiFlyerImg" style="width:100%;display:block">
+        <div style="position:absolute;left:0;right:0;bottom:0;padding:22px 22px 20px;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.82))">
+          <div id="aiFlyerHeadline" style="color:#fff;font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.04;text-shadow:0 2px 10px rgba(0,0,0,.55);overflow-wrap:break-word"></div>
+          <div id="aiFlyerSub" style="display:none"></div>
+          <div id="aiFlyerBy" style="display:none"></div>
+          <div id="aiFlyerLink" style="color:#fff;font-size:13px;margin-top:10px;opacity:.92;word-break:break-all"></div>
         </div>
-        <div style="padding:22px">
-          <div style="font-size:20px;font-weight:700">Shop now 🛍️</div>
-          <div style="font-size:20px;color:#c1250c;font-weight:700;margin-top:6px">shopmidwesttees.com</div>
-          <div id="aiFlyerLink" style="font-size:12px;color:#6b6866;margin-top:8px;word-break:break-all"></div>
-        </div>
-        <div id="aiFlyerBy" style="background:#eceae9;color:#6b6866;font-size:11px;padding:12px 22px;letter-spacing:.06em;text-transform:uppercase;font-weight:700">SHARED BY A MIDWEST TEES AFFILIATE</div>
       </div>
       <div style="display:flex;gap:8px;margin-top:12px">
         <button class="btn" onclick="downloadAiFlyer()">Download PNG</button>
@@ -316,27 +311,32 @@ function renderFlyerSel(){
     chip.appendChild(x); w.appendChild(chip);
   });
 }
+function updateFlyerText(){
+  var el=document.getElementById('aiFlyerHeadline'); if(!el) return;
+  var t=(document.getElementById('aiTheme').value||'').trim();
+  el.textContent = t || el.getAttribute('data-fb') || 'SHOP MIDWEST TEES';
+}
 async function genFlyer(){
-  var theme=(document.getElementById('aiTheme').value||'').trim();
+  var text=(document.getElementById('aiTheme').value||'').trim();
   var btn=document.getElementById('genBtn'), msg=document.getElementById('aiFlyerMsg');
-  btn.disabled=true; btn.textContent='Making it\u2026'; msg.textContent='Painting your flyer \u2014 this takes a few seconds \u2728';
+  btn.disabled=true; btn.textContent='Making it…'; msg.textContent='Making your flyer — a few seconds ✨';
   try{
-    var r=await fetch('/api/flyer-ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:TOKEN,theme:theme,products:SELP.map(function(p){return {title:p.title,image:p.image};})})});
+    var r=await fetch('/api/flyer-ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:TOKEN,theme:text,products:SELP.map(function(p){return {title:p.title,image:p.image};})})});
     var j=await r.json();
     if(!r.ok) throw new Error(j.error||'failed');
-    document.getElementById('aiFlyerHeadline').textContent=j.headline||'SHOP MIDWEST TEES';
-    document.getElementById('aiFlyerSub').textContent=j.subhead||'Custom tees & spirit-wear';
-    var img=document.getElementById('aiFlyerImg');
-    if(j.image){ img.src=j.image; img.style.display='block'; }
-    else if(SELP.length && SELP[0].image){ img.src='/api/img?u='+encodeURIComponent(SELP[0].image); img.style.display='block'; }
-    else { img.style.display='none'; }
+    var card=document.getElementById('aiFlyerCard'), img=document.getElementById('aiFlyerImg');
+    if(j.image){ img.src=j.image; img.style.display='block'; card.style.minHeight=''; }
+    else if(SELP.length && SELP[0].image){ img.src='/api/img?u='+encodeURIComponent(SELP[0].image); img.style.display='block'; card.style.minHeight=''; }
+    else { img.style.display='none'; card.style.minHeight='340px'; }
+    var head=document.getElementById('aiFlyerHeadline');
+    head.setAttribute('data-fb', j.headline||'SHOP MIDWEST TEES');
+    head.textContent = text || j.headline || 'SHOP MIDWEST TEES';
     var link=(ME&&ME.link)||(document.getElementById('myLink')?document.getElementById('myLink').textContent:'');
     document.getElementById('aiFlyerLink').textContent=link;
-    document.getElementById('aiFlyerBy').textContent='SHARED BY '+((ME&&ME.name)||'a MidWest Tees affiliate');
     document.getElementById('aiFlyerWrap').style.display='block';
-    msg.textContent=j.image?'Done! Download it below. \ud83d\udc47':(SELP.length?'Made your flyer with your shirt! (AI art is off \u2014 showing your real product.)':'Made your flyer! (AI picture is off \u2014 using a clean template.)');
-  }catch(e){ msg.textContent='Could not make it right now \u2014 try again in a sec.'; }
-  btn.disabled=false; btn.textContent='Generate flyer \u2728';
+    msg.textContent = j.image ? 'Done! Tweak your text above and it updates on the flyer live. Download below. 👇' : 'Made your flyer with your real shirt (AI image is off right now).';
+  }catch(e){ msg.textContent='Could not make it right now — try again in a sec.'; }
+  btn.disabled=false; btn.textContent='Generate flyer ✨';
 }
 function downloadAiFlyer(){
   var el=document.getElementById('aiFlyerCard');
