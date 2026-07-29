@@ -122,6 +122,10 @@
     <div style="margin-top:10px"><button class="btn" onclick="addGroup()">Add group</button></div>
     <div id="grpRows" style="margin-top:14px"></div>
   </div>
+  <div class="panel">
+    <h2>Community — moderate posts</h2>
+    <div id="forumRows"><div class="muted">Loading…</div></div>
+  </div>
 <div class="toast" id="toast"></div>
 <div class="modal" id="modal"><div class="box">
   <h2 id="mTitle" style="margin-top:0">New affiliate 🎉</h2>
@@ -150,6 +154,7 @@ function show(data){
   paint(data);
   loadItems();
   loadGroups();
+  loadForumAdmin();
 }
 function paint(data){
   const a=data.affiliates||[];
@@ -306,6 +311,30 @@ async function delGroup(id){
   if(!confirm('Delete this group?'))return;
   const r=await fetch('/api/admin/groups/'+id,{method:'DELETE',headers:h()});
   if(r.ok){toast('Deleted');loadGroups();}else toast('Error');
+}
+async function loadForumAdmin(){
+  const wrap=document.getElementById('forumRows');
+  if(!wrap)return;
+  if(DEMO){wrap.innerHTML='<div class="muted">Affiliate posts show here.</div>';return;}
+  try{
+    const r=await fetch('/api/admin/forum',{headers:h()});
+    const d=await r.json();const posts=d.posts||[];
+    if(!posts.length){wrap.innerHTML='<div class="muted">No posts yet.</div>';return;}
+    wrap.innerHTML='';
+    posts.forEach(p=>{
+      const row=document.createElement('div');row.style.cssText='border-bottom:1px solid var(--line);padding:10px 0';
+      let inner='<div><b>'+esc(p.author_name||'Affiliate')+'</b> — '+esc(p.body)+'</div>';
+      (p.replies||[]).forEach(rp=>{inner+='<div class="muted" style="margin-left:14px;margin-top:2px">'+esc(rp.author_name||'')+': '+esc(rp.body)+'</div>';});
+      row.innerHTML=inner;
+      const b=document.createElement('button');b.className='btn ghost sm';b.textContent='Delete';b.style.marginTop='6px';b.onclick=()=>delForum(p.id);
+      row.appendChild(b);wrap.appendChild(row);
+    });
+  }catch(e){wrap.innerHTML='<div class="muted">Could not load.</div>';}
+}
+async function delForum(id){
+  if(!confirm('Delete this post and its replies?'))return;
+  const r=await fetch('/api/admin/forum/'+id,{method:'DELETE',headers:h()});
+  if(r.ok){toast('Deleted');loadForumAdmin();}else toast('Error');
 }
 </script>
 </body>
