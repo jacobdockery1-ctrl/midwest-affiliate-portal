@@ -267,6 +267,20 @@ app.post('/api/signup', async (req, res) => {
 });
 
 app.get('/join', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'join.html')));
+// Same-origin image proxy (lets flyer product photos export cleanly to PNG). Allowlisted hosts only.
+app.get('/api/img', async (req, res) => {
+  try {
+    const url = new URL((req.query.u || '').toString());
+    const ok = url.protocol === 'https:' && (/(^|\.)shopify\.com$/.test(url.hostname) || url.hostname === 'shopmidwesttees.com' || url.hostname.endsWith('.myshopify.com'));
+    if (!ok) return res.status(400).end();
+    const r = await fetch(url.href);
+    if (!r.ok) return res.status(502).end();
+    res.set('Content-Type', r.headers.get('content-type') || 'image/jpeg');
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.send(Buffer.from(await r.arrayBuffer()));
+  } catch (e) { res.status(400).end(); }
+});
+
 app.get('/healthz', (_req, res) => res.send('ok'));
 app.get('/admin', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
