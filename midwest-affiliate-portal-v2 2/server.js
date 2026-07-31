@@ -91,9 +91,11 @@ app.post('/api/flyer-ai', affiliateAuth, async (req, res) => {
   const theme = (req.body?.theme || '').toString().slice(0, 300).trim();
   const products = Array.isArray(req.body?.products) ? req.body.products.slice(0, 3) : [];
   try {
-    const [copy, img] = await Promise.all([ flyerCopy(theme, products), flyerImage(theme, products) ]);
+    const copy = await flyerCopy(theme, products);
+    const title = theme || copy.headline;
+    const img = await flyerImage(title, products);
     res.json({
-      headline: copy.headline,
+      headline: title,
       subhead: copy.subhead,
       image: img.image,
       imageError: img.error || null,
